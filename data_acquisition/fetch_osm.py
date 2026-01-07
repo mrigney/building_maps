@@ -40,6 +40,10 @@ def fetch_buildings(north: float, south: float, east: float, west: float, verbos
         if verbose:
             print(f"  → Waiting for API response (this may take a while)...")
 
+        # Turn on verbose for ox
+        ox.settings.log_console = True
+        ox.settings.timeout = 180
+        
         buildings = ox.features_from_bbox(
             bbox=(north, south, east, west),
             tags={'building': True}
