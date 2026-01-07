@@ -2,6 +2,17 @@
 
 A Python toolkit for generating 3D urban terrain models from open geographic data sources (OpenStreetMap and Google Open Buildings) for thermal analysis and simulation.
 
+[![GitHub](https://img.shields.io/badge/GitHub-building__maps-blue?logo=github)](https://github.com/mrigney/building_maps)
+
+## 📚 Documentation
+
+**New users start here**: [Complete Documentation →](docs/)
+
+- [Getting Started Guide](docs/getting-started/GETTING_STARTED.md)
+- [Workflow Guide](docs/guides/WORKFLOW_GUIDE.md)
+- [Troubleshooting](docs/troubleshooting/)
+- [Reference Documentation](docs/reference/)
+
 ## Features
 
 - **Automated Data Acquisition**: Fetch building footprints and road networks from OpenStreetMap
@@ -11,7 +22,7 @@ A Python toolkit for generating 3D urban terrain models from open geographic dat
 - **Material Grouping**: Organize buildings by material type for thermal property assignment
 - **Spatial Manifest**: Generate comprehensive metadata and spatial indexing
 
-## Installation
+## Quick Install
 
 1. Clone or download this repository
 
@@ -150,29 +161,26 @@ Edit `utils/config.py` to customize:
 - Vegetation/tree placement
 - Terrain elevation integration
 
-## Troubleshooting
+## Need Help?
 
-### No buildings found
+### Common Issues
+- **OSM API hangs or fails**: See [OSM API Workarounds](docs/troubleshooting/OSM_API_WORKAROUND.md)
+- **No buildings found**: Check coordinates and try a larger area
+- **Import errors**: Run `py test_installation.py` to verify setup
 
-- Verify your bounding box coordinates are in the correct order (NORTH SOUTH EAST WEST)
-- Try a larger area or different location
-- Check that the coordinates are in decimal degrees (not DMS format)
+### Full Documentation
+📖 **[Browse Complete Documentation](docs/)** - Guides, tutorials, and troubleshooting
 
-### Import errors
-
-- Ensure all dependencies are installed: `pip install -r requirements.txt`
-- Some packages may require additional system libraries (GDAL, etc.)
-
-### Memory issues with large areas
-
-- Start with smaller bounding boxes (0.5-1 km²)
-- Use instancing to reduce memory usage
-- Export to PLY format which is more compact than GLB
-
-## License
-
-This project uses open data from OpenStreetMap (ODbL license).
+### Quick Links
+- [Getting Started](docs/getting-started/GETTING_STARTED.md)
+- [Complete Workflow](docs/guides/WORKFLOW_GUIDE.md)
+- [Troubleshooting Guide](docs/troubleshooting/)
+- [Architecture & Design](docs/reference/PROJECT_SUMMARY.md)
 
 ## Contributing
 
 This is an initial prototype. Contributions and suggestions are welcome!
+
+## License
+
+This project uses open data from OpenStreetMap (ODbL license).
