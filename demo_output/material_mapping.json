@@ -1,0 +1,38 @@
+{
+  "description": "Material group assignments for thermal property lookup",
+  "groups": {
+    "concrete": [
+      "demo_1_0",
+      "demo_1_1",
+      "demo_1_2",
+      "demo_1_3",
+      "demo_1_4",
+      "demo_2_0",
+      "demo_2_1",
+      "demo_2_2",
+      "demo_2_3",
+      "demo_2_4",
+      "demo_3_0",
+      "demo_3_1",
+      "demo_3_2",
+      "demo_3_3",
+      "demo_3_4"
+    ],
+    "brick": [
+      "demo_0_0",
+      "demo_0_1",
+      "demo_0_2",
+      "demo_0_3",
+      "demo_0_4",
+      "demo_4_0",
+      "demo_4_1",
+      "demo_4_2",
+      "demo_4_3",
+      "demo_4_4"
+    ]
+  },
+  "statistics": {
+    "concrete": 15,
+    "brick": 10
+  }
+}

@@ -1,0 +1,376 @@
+{
+  "metadata": {
+    "generated": "2026-01-06T22:48:48.526279",
+    "generator": "urban-terrain-generator v0.1",
+    "coordinate_system": {
+      "type": "local_meters",
+      "origin_lat": 40.758,
+      "origin_lon": -73.9689,
+      "description": "Local coordinate system with origin at specified lat/lon, +X = East, +Y = North, +Z = Up"
+    },
+    "bounding_box": {
+      "north": 40.7584,
+      "south": 40.7576,
+      "east": -73.9685,
+      "west": -73.9693
+    }
+  },
+  "statistics": {
+    "total_buildings": 25,
+    "unique_models": 25,
+    "total_roads": 0
+  },
+  "buildings": {
+    "demo_0_0": {
+      "model_file": "demo_0_0.glb",
+      "is_instance": false,
+      "prototype": null,
+      "position": {
+        "lat": 40.758,
+        "lon": -73.9689
+      },
+      "properties": {
+        "height_m": 24.62204489047638,
+        "building_type": "residential",
+        "area_sqm": 598.6794662655522
+      }
+    },
+    "demo_0_1": {
+      "model_file": "demo_0_1.glb",
+      "is_instance": false,
+      "prototype": null,
+      "position": {
+        "lat": 40.7584491555875,
+        "lon": -73.9689
+      },
+      "properties": {
+        "height_m": 15.630839341653878,
+        "building_type": "residential",
+        "area_sqm": 721.0021644939271
+      }
+    },
+    "demo_0_2": {
+      "model_file": "demo_0_2.glb",
+      "is_instance": false,
+      "prototype": null,
+      "position": {
+        "lat": 40.758898311174995,
+        "lon": -73.9689
+      },
+      "properties": {
+        "height_m": 18.451590841954797,
+        "building_type": "residential",
+        "area_sqm": 412.9414266772115
+      }
+    },
+    "demo_0_3": {
+      "model_file": "demo_0_3.glb",
+      "is_instance": false,
+      "prototype": null,
+      "position": {
+        "lat": 40.75934746676249,
+        "lon": -73.9689
+      },
+      "properties": {
+        "height_m": 26.04998372785086,
+        "building_type": "residential",
+        "area_sqm": 722.5502464956962
+      }
+    },
+    "demo_0_4": {
+      "model_file": "demo_0_4.glb",
+      "is_instance": false,
+      "prototype": null,
+      "position": {
+        "lat": 40.75979662234999,
+        "lon": -73.9689
+      },
+      "properties": {
+        "height_m": 11.552703156813235,
+        "building_type": "residential",
+        "area_sqm": 571.4189574904235
+      }
+    },
+    "demo_1_0": {
+      "model_file": "demo_1_0.glb",
+      "is_instance": false,
+      "prototype": null,
+      "position": {
+        "lat": 40.758,
+        "lon": -73.96830703484792
+      },
+      "properties": {
+        "height_m": 18.534273282251576,
+        "building_type": "commercial",
+        "area_sqm": 562.6379004611998
+      }
+    },
+    "demo_1_1": {
+      "model_file": "demo_1_1.glb",
+      "is_instance": false,
+      "prototype": null,
+      "position": {
+        "lat": 40.7584491555875,
+        "lon": -73.96830703484792
+      },
+      "properties": {
+        "height_m": 15.378554586860606,
+        "building_type": "commercial",
+        "area_sqm": 1000.9791427256688
+      }
+    },
+    "demo_1_2": {
+      "model_file": "demo_1_2.glb",
+      "is_instance": false,
+      "prototype": null,
+      "position": {
+        "lat": 40.758898311174995,
+        "lon": -73.96830703484792
+      },
+      "properties": {
+        "height_m": 26.350081249038887,
+        "building_type": "commercial",
+        "area_sqm": 404.58334673341676
+      }
+    },
+    "demo_1_3": {
+      "model_file": "demo_1_3.glb",
+      "is_instance": false,
+      "prototype": null,
+      "position": {
+        "lat": 40.75934746676249,
+        "lon": -73.96830703484792
+      },
+      "properties": {
+        "height_m": 24.05393039577727,
+        "building_type": "commercial",
+        "area_sqm": 1001.61563328571
+      }
+    },
+    "demo_1_4": {
+      "model_file": "demo_1_4.glb",
+      "is_instance": false,
+      "prototype": null,
+      "position": {
+        "lat": 40.75979662234999,
+        "lon": -73.96830703484792
+      },
+      "properties": {
+        "height_m": 16.587334382115113,
+        "building_type": "commercial",
+        "area_sqm": 754.1446121780413
+      }
+    },
+    "demo_2_0": {
+      "model_file": "demo_2_0.glb",
+      "is_instance": false,
+      "prototype": null,
+      "position": {
+        "lat": 40.758,
+        "lon": -73.96771406969584
+      },
+      "properties": {
+        "height_m": 20.920117088319454,
+        "building_type": "commercial",
+        "area_sqm": 652.6218011468801
+      }
+    },
+    "demo_2_1": {
+      "model_file": "demo_2_1.glb",
+      "is_instance": false,
+      "prototype": null,
+      "position": {
+        "lat": 40.7584491555875,
+        "lon": -73.96771406969584
+      },
+      "properties": {
+        "height_m": 10.498401655522,
+        "building_type": "commercial",
+        "area_sqm": 976.215325821293
+      }
+    },
+    "demo_2_2": {
+      "model_file": "demo_2_2.glb",
+      "is_instance": false,
+      "prototype": null,
+      "position": {
+        "lat": 40.758898311174995,
+        "lon": -73.96771406969584
+      },
+      "properties": {
+        "height_m": 48.71450192175152,
+        "building_type": "commercial",
+        "area_sqm": 962.9156617918231
+      }
+    },
+    "demo_2_3": {
+      "model_file": "demo_2_3.glb",
+      "is_instance": false,
+      "prototype": null,
+      "position": {
+        "lat": 40.75934746676249,
+        "lon": -73.96771406969584
+      },
+      "properties": {
+        "height_m": 28.043295745617645,
+        "building_type": "commercial",
+        "area_sqm": 717.5067424668525
+      }
+    },
+    "demo_2_4": {
+      "model_file": "demo_2_4.glb",
+      "is_instance": false,
+      "prototype": null,
+      "position": {
+        "lat": 40.75979662234999,
+        "lon": -73.96771406969584
+      },
+      "properties": {
+        "height_m": 18.577744514801946,
+        "building_type": "commercial",
+        "area_sqm": 670.1269872086909
+      }
+    },
+    "demo_3_0": {
+      "model_file": "demo_3_0.glb",
+      "is_instance": false,
+      "prototype": null,
+      "position": {
+        "lat": 40.758,
+        "lon": -73.96712110454378
+      },
+      "properties": {
+        "height_m": 35.75603263617933,
+        "building_type": "industrial",
+        "area_sqm": 661.5268815961779
+      }
+    },
+    "demo_3_1": {
+      "model_file": "demo_3_1.glb",
+      "is_instance": false,
+      "prototype": null,
+      "position": {
+        "lat": 40.7584491555875,
+        "lon": -73.96712110454378
+      },
+      "properties": {
+        "height_m": 17.98541134006181,
+        "building_type": "industrial",
+        "area_sqm": 648.4273223775203
+      }
+    },
+    "demo_3_2": {
+      "model_file": "demo_3_2.glb",
+      "is_instance": false,
+      "prototype": null,
+      "position": {
+        "lat": 40.758898311174995,
+        "lon": -73.96712110454378
+      },
+      "properties": {
+        "height_m": 47.49407317069355,
+        "building_type": "industrial",
+        "area_sqm": 855.045450168376
+      }
+    },
+    "demo_3_3": {
+      "model_file": "demo_3_3.glb",
+      "is_instance": false,
+      "prototype": null,
+      "position": {
+        "lat": 40.75934746676249,
+        "lon": -73.96712110454378
+      },
+      "properties": {
+        "height_m": 20.33599082335368,
+        "building_type": "industrial",
+        "area_sqm": 766.8803748638367
+      }
+    },
+    "demo_3_4": {
+      "model_file": "demo_3_4.glb",
+      "is_instance": false,
+      "prototype": null,
+      "position": {
+        "lat": 40.75979662234999,
+        "lon": -73.96712110454378
+      },
+      "properties": {
+        "height_m": 27.412563363504834,
+        "building_type": "industrial",
+        "area_sqm": 422.4713082989076
+      }
+    },
+    "demo_4_0": {
+      "model_file": "demo_4_0.glb",
+      "is_instance": false,
+      "prototype": null,
+      "position": {
+        "lat": 40.758,
+        "lon": -73.9665281393917
+      },
+      "properties": {
+        "height_m": 43.82666506564764,
+        "building_type": "residential",
+        "area_sqm": 666.5848656941181
+      }
+    },
+    "demo_4_1": {
+      "model_file": "demo_4_1.glb",
+      "is_instance": false,
+      "prototype": null,
+      "position": {
+        "lat": 40.7584491555875,
+        "lon": -73.9665281393917
+      },
+      "properties": {
+        "height_m": 32.12026348512189,
+        "building_type": "residential",
+        "area_sqm": 1065.2305998817794
+      }
+    },
+    "demo_4_2": {
+      "model_file": "demo_4_2.glb",
+      "is_instance": false,
+      "prototype": null,
+      "position": {
+        "lat": 40.758898311174995,
+        "lon": -73.9665281393917
+      },
+      "properties": {
+        "height_m": 23.74668503270025,
+        "building_type": "residential",
+        "area_sqm": 934.1584896156644
+      }
+    },
+    "demo_4_3": {
+      "model_file": "demo_4_3.glb",
+      "is_instance": false,
+      "prototype": null,
+      "position": {
+        "lat": 40.75934746676249,
+        "lon": -73.9665281393917
+      },
+      "properties": {
+        "height_m": 28.549718384003185,
+        "building_type": "residential",
+        "area_sqm": 680.023409295117
+      }
+    },
+    "demo_4_4": {
+      "model_file": "demo_4_4.glb",
+      "is_instance": false,
+      "prototype": null,
+      "position": {
+        "lat": 40.75979662234999,
+        "lon": -73.9665281393917
+      },
+      "properties": {
+        "height_m": 39.53602557988691,
+        "building_type": "residential",
+        "area_sqm": 869.3588385783523
+      }
+    }
+  },
+  "roads": {}
+}
