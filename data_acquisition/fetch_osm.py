@@ -14,7 +14,7 @@ warnings.filterwarnings('ignore')
 ox.settings.max_query_area_size = 50000 * 50000  # 50km x 50km
 
 
-def fetch_buildings(north: float, south: float, east: float, west: float) -> gpd.GeoDataFrame:
+def fetch_buildings(north: float, south: float, east: float, west: float, verbose: bool = False) -> gpd.GeoDataFrame:
     """
     Fetch building footprints from OpenStreetMap for a bounding box.
 
@@ -23,22 +23,36 @@ def fetch_buildings(north: float, south: float, east: float, west: float) -> gpd
         south: Southern latitude
         east: Eastern longitude
         west: Western longitude
+        verbose: Enable verbose output
 
     Returns:
         GeoDataFrame with building footprints and metadata
     """
-    print(f"Fetching buildings from OSM for bbox: ({south}, {west}) to ({north}, {east})")
+    if verbose:
+        print(f"  → Fetching buildings from OSM for bbox: ({south}, {west}) to ({north}, {east})")
+        print(f"  → Sending request to Overpass API...")
+    else:
+        print(f"Fetching buildings from OSM for bbox: ({south}, {west}) to ({north}, {east})")
 
     try:
         # Fetch building footprints
         # Note: osmnx 2.0+ uses bbox=(north, south, east, west) instead of keyword args
+        if verbose:
+            print(f"  → Waiting for API response (this may take a while)...")
+
         buildings = ox.features_from_bbox(
             bbox=(north, south, east, west),
             tags={'building': True}
         )
 
+        if verbose:
+            print(f"  → Received response, processing {len(buildings)} features...")
+
         # Keep only polygon geometries (filter out points and lines)
         buildings = buildings[buildings.geometry.type.isin(['Polygon', 'MultiPolygon'])]
+
+        if verbose:
+            print(f"  → Filtered to {len(buildings)} polygon buildings...")
 
         # Extract useful attributes
         useful_columns = ['geometry', 'building', 'height', 'building:levels',
@@ -76,7 +90,7 @@ def fetch_buildings(north: float, south: float, east: float, west: float) -> gpd
         return gpd.GeoDataFrame()
 
 
-def fetch_roads(north: float, south: float, east: float, west: float) -> gpd.GeoDataFrame:
+def fetch_roads(north: float, south: float, east: float, west: float, verbose: bool = False) -> gpd.GeoDataFrame:
     """
     Fetch road network from OpenStreetMap for a bounding box.
 
@@ -85,19 +99,30 @@ def fetch_roads(north: float, south: float, east: float, west: float) -> gpd.Geo
         south: Southern latitude
         east: Eastern longitude
         west: Western longitude
+        verbose: Enable verbose output
 
     Returns:
         GeoDataFrame with road network
     """
-    print(f"Fetching roads from OSM for bbox: ({south}, {west}) to ({north}, {east})")
+    if verbose:
+        print(f"  → Fetching roads from OSM for bbox: ({south}, {west}) to ({north}, {east})")
+        print(f"  → Querying road network...")
+    else:
+        print(f"Fetching roads from OSM for bbox: ({south}, {west}) to ({north}, {east})")
 
     try:
         # Fetch road network as a graph
         # Note: osmnx 2.0+ uses bbox=(north, south, east, west) instead of keyword args
+        if verbose:
+            print(f"  → Waiting for road network data...")
+
         G = ox.graph_from_bbox(
             bbox=(north, south, east, west),
             network_type='drive'
         )
+
+        if verbose:
+            print(f"  → Converting graph to GeoDataFrame...")
 
         # Convert to GeoDataFrame
         roads = ox.graph_to_gdfs(G, nodes=False, edges=True)

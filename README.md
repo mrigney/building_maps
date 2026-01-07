@@ -35,6 +35,7 @@ py generate_urban_terrain.py --bbox 47.6097 47.6047 -122.3320 -122.3420 --format
 - `--instancing`: Enable instancing to reduce file count for similar buildings
 - `--combined`: Also export a single combined scene file with all buildings
 - `--output-dir DIR`: Output directory (default: output)
+- `--verbose`: Enable detailed progress output during OSM data fetching
 
 ### Finding Coordinates
 

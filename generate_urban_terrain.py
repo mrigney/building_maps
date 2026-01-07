@@ -67,6 +67,12 @@ def main():
         help=f'Output directory (default: {OUTPUT_DIR})'
     )
 
+    parser.add_argument(
+        '--verbose',
+        action='store_true',
+        help='Enable verbose output with detailed progress information'
+    )
+
     args = parser.parse_args()
 
     # Extract bounding box
@@ -78,12 +84,16 @@ def main():
     print(f"Bounding box: ({south:.6f}, {west:.6f}) to ({north:.6f}, {east:.6f})")
     print(f"Output format: {args.format.upper()}")
     print(f"Instancing: {'Enabled' if args.instancing else 'Disabled'}")
+    print(f"Verbose: {'Enabled' if args.verbose else 'Disabled'}")
     print("=" * 80)
     print()
 
     # Step 1: Fetch building data
     print("[1/6] Fetching building data from OpenStreetMap...")
-    buildings_gdf = fetch_buildings(north, south, east, west)
+    if args.verbose:
+        print("  → Querying Overpass API...")
+        print("  → This may take 30-120 seconds depending on area size and network speed...")
+    buildings_gdf = fetch_buildings(north, south, east, west, verbose=args.verbose)
 
     if len(buildings_gdf) == 0:
         print("ERROR: No buildings found in the specified area!")
@@ -95,7 +105,9 @@ def main():
 
     # Step 2: Fetch road data (optional for now)
     print("[2/6] Fetching road network from OpenStreetMap...")
-    roads_gdf = fetch_roads(north, south, east, west)
+    if args.verbose:
+        print("  → Querying road network...")
+    roads_gdf = fetch_roads(north, south, east, west, verbose=args.verbose)
     print()
 
     # Step 3: Calculate origin for local coordinate system
