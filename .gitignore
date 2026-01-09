@@ -37,11 +37,12 @@ ENV/
 .DS_Store
 Thumbs.db
 
-# Output directories (keep demo_output for reference)
+# Output directories (keep demo_output and examples/ for reference)
 output/
 test_output/
 test_output_tiny/
 my_custom_output/
+!examples/
 
 # Temporary files
 *.log

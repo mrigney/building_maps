@@ -87,10 +87,13 @@ def estimate_height_from_levels(levels) -> float:
     """
     from .config import HEIGHT_PER_FLOOR
 
-    if levels is None or np.isnan(levels):
+    if levels is None:
         return None
 
     try:
-        return float(levels) * HEIGHT_PER_FLOOR
+        levels_float = float(levels)
+        if np.isnan(levels_float):
+            return None
+        return levels_float * HEIGHT_PER_FLOOR
     except (ValueError, TypeError):
         return None

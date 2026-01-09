@@ -91,8 +91,8 @@ def main():
     # Step 1: Fetch building data
     print("[1/6] Fetching building data from OpenStreetMap...")
     if args.verbose:
-        print("  → Querying Overpass API...")
-        print("  → This may take 30-120 seconds depending on area size and network speed...")
+        print("  -> Querying Overpass API...")
+        print("  -> This may take 30-120 seconds depending on area size and network speed...")
     buildings_gdf = fetch_buildings(north, south, east, west, verbose=args.verbose)
 
     if len(buildings_gdf) == 0:
@@ -106,7 +106,7 @@ def main():
     # Step 2: Fetch road data (optional for now)
     print("[2/6] Fetching road network from OpenStreetMap...")
     if args.verbose:
-        print("  → Querying road network...")
+        print("  -> Querying road network...")
     roads_gdf = fetch_roads(north, south, east, west, verbose=args.verbose)
     print()
 

@@ -10,13 +10,16 @@ import warnings
 # Suppress warnings for cleaner output
 warnings.filterwarnings('ignore')
 
-# Configure osmnx for larger query areas
+# Configure osmnx for larger query areas and use working Overpass server
 ox.settings.max_query_area_size = 50000 * 50000  # 50km x 50km
+ox.settings.overpass_endpoint = "https://overpass.kumi.systems/api/interpreter"
+ox.settings.timeout = 180
 
 
 def fetch_buildings(north: float, south: float, east: float, west: float, verbose: bool = False) -> gpd.GeoDataFrame:
     """
     Fetch building footprints from OpenStreetMap for a bounding box.
+    Uses direct Overpass API to avoid OSMnx projection bugs.
 
     Args:
         north: Northern latitude
@@ -28,75 +31,15 @@ def fetch_buildings(north: float, south: float, east: float, west: float, verbos
     Returns:
         GeoDataFrame with building footprints and metadata
     """
-    if verbose:
-        print(f"  → Fetching buildings from OSM for bbox: ({south}, {west}) to ({north}, {east})")
-        print(f"  → Sending request to Overpass API...")
-    else:
-        print(f"Fetching buildings from OSM for bbox: ({south}, {west}) to ({north}, {east})")
-
-    try:
-        # Fetch building footprints
-        # Note: osmnx 2.0+ uses bbox=(north, south, east, west) instead of keyword args
-        if verbose:
-            print(f"  → Waiting for API response (this may take a while)...")
-
-        # Turn on verbose for ox
-        ox.settings.log_console = True
-        ox.settings.timeout = 180
-        
-        buildings = ox.features_from_bbox(
-            bbox=(north, south, east, west),
-            tags={'building': True}
-        )
-
-        if verbose:
-            print(f"  → Received response, processing {len(buildings)} features...")
-
-        # Keep only polygon geometries (filter out points and lines)
-        buildings = buildings[buildings.geometry.type.isin(['Polygon', 'MultiPolygon'])]
-
-        if verbose:
-            print(f"  → Filtered to {len(buildings)} polygon buildings...")
-
-        # Extract useful attributes
-        useful_columns = ['geometry', 'building', 'height', 'building:levels',
-                         'building:material', 'roof:shape', 'name', 'addr:street']
-
-        # Keep only columns that exist
-        columns_to_keep = [col for col in useful_columns if col in buildings.columns]
-        buildings = buildings[columns_to_keep].copy()
-
-        # Reset index to get osmid as a column
-        buildings = buildings.reset_index()
-
-        # Create a unique building ID
-        # Handle various index types in osmnx 2.0+
-        if 'osmid' in buildings.columns:
-            # Filter out NaN values and convert to string
-            buildings['building_id'] = buildings.apply(
-                lambda row: f"osm_{int(row['osmid'])}" if pd.notna(row.get('osmid')) else f"osm_{row.name}",
-                axis=1
-            )
-        elif 'element_type' in buildings.columns and 'osmid' in buildings.index.names:
-            # Multi-index case
-            buildings['building_id'] = buildings.index.get_level_values('osmid').astype(str)
-            buildings['building_id'] = 'osm_' + buildings['building_id']
-        else:
-            # Fallback to row index
-            buildings['building_id'] = 'osm_' + buildings.index.astype(str)
-
-        print(f"Retrieved {len(buildings)} buildings")
-
-        return buildings
-
-    except Exception as e:
-        print(f"Error fetching buildings: {e}")
-        return gpd.GeoDataFrame()
+    # Use direct Overpass API implementation to avoid OSMnx projection bugs
+    from .fetch_osm_direct import fetch_buildings_direct
+    return fetch_buildings_direct(north, south, east, west, verbose)
 
 
 def fetch_roads(north: float, south: float, east: float, west: float, verbose: bool = False) -> gpd.GeoDataFrame:
     """
     Fetch road network from OpenStreetMap for a bounding box.
+    Uses direct Overpass API to avoid OSMnx projection bugs.
 
     Args:
         north: Northern latitude
@@ -108,43 +51,9 @@ def fetch_roads(north: float, south: float, east: float, west: float, verbose: b
     Returns:
         GeoDataFrame with road network
     """
-    if verbose:
-        print(f"  → Fetching roads from OSM for bbox: ({south}, {west}) to ({north}, {east})")
-        print(f"  → Querying road network...")
-    else:
-        print(f"Fetching roads from OSM for bbox: ({south}, {west}) to ({north}, {east})")
-
-    try:
-        # Fetch road network as a graph
-        # Note: osmnx 2.0+ uses bbox=(north, south, east, west) instead of keyword args
-        if verbose:
-            print(f"  → Waiting for road network data...")
-
-        G = ox.graph_from_bbox(
-            bbox=(north, south, east, west),
-            network_type='drive'
-        )
-
-        if verbose:
-            print(f"  → Converting graph to GeoDataFrame...")
-
-        # Convert to GeoDataFrame
-        roads = ox.graph_to_gdfs(G, nodes=False, edges=True)
-
-        # Keep useful attributes
-        useful_columns = ['geometry', 'highway', 'name', 'width', 'lanes', 'surface']
-        columns_to_keep = [col for col in useful_columns if col in roads.columns]
-        roads = roads[columns_to_keep].copy()
-
-        roads = roads.reset_index()
-
-        print(f"Retrieved {len(roads)} road segments")
-
-        return roads
-
-    except Exception as e:
-        print(f"Error fetching roads: {e}")
-        return gpd.GeoDataFrame()
+    # Use direct Overpass API implementation to avoid OSMnx projection bugs
+    from .fetch_osm_direct import fetch_roads_direct
+    return fetch_roads_direct(north, south, east, west, verbose)
 
 
 def process_building_heights(buildings: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
@@ -157,8 +66,16 @@ def process_building_heights(buildings: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
     Returns:
         GeoDataFrame with processed height column
     """
-    from ..utils.config import DEFAULT_BUILDING_HEIGHT
-    from ..utils.geo_utils import estimate_height_from_levels
+    try:
+        from ..utils.config import DEFAULT_BUILDING_HEIGHT
+        from ..utils.geo_utils import estimate_height_from_levels
+    except ImportError:
+        # Fallback for direct script execution
+        import sys
+        from pathlib import Path
+        sys.path.insert(0, str(Path(__file__).parent.parent))
+        from utils.config import DEFAULT_BUILDING_HEIGHT
+        from utils.geo_utils import estimate_height_from_levels
 
     buildings = buildings.copy()
 

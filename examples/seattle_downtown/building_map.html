@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Urban Terrain Building Map</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+        #map {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 100%;
+        }
+        .info-panel {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 250px;
+            background: white;
+            border-radius: 5px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.2);
+            padding: 15px;
+            z-index: 1000;
+        }
+        .info-panel h3 {
+            margin: 0 0 10px 0;
+            font-size: 16px;
+            border-bottom: 2px solid #333;
+            padding-bottom: 5px;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin: 5px 0;
+            font-size: 13px;
+        }
+        .legend-color {
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            margin-right: 8px;
+            border: 1px solid #333;
+        }
+        .stats {
+            margin-top: 15px;
+            padding-top: 10px;
+            border-top: 1px solid #ddd;
+            font-size: 12px;
+        }
+        .stats p {
+            margin: 5px 0;
+        }
+        .building-popup {
+            font-family: Arial, sans-serif;
+            min-width: 200px;
+        }
+        .building-popup h4 {
+            margin: 0 0 10px 0;
+            color: #333;
+        }
+        .building-popup table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .building-popup td {
+            padding: 3px 5px;
+            font-size: 12px;
+        }
+        .building-popup td:first-child {
+            font-weight: bold;
+            width: 40%;
+        }
+        .height-bar {
+            width: 100%;
+            height: 8px;
+            background: linear-gradient(to right, #2ecc71, #3498db, #f39c12, #e74c3c);
+            margin: 10px 0;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+
+    <div class="info-panel">
+        <h3>Building Heights</h3>
+
+        <div class="height-bar"></div>
+        <div style="display: flex; justify-content: space-between; font-size: 10px; margin-bottom: 10px;">
+            <span>6m</span>
+            <span>138m</span>
+        </div>
+
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: #2ecc71;"></div>
+            <span>< 15m (Low)</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: #3498db;"></div>
+            <span>15-30m (Medium)</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: #f39c12;"></div>
+            <span>30-60m (High)</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: #e74c3c;"></div>
+            <span>> 60m (Very High)</span>
+        </div>
+
+        <div class="stats">
+            <p><strong>Total Buildings:</strong> 21</p>
+            <p><strong>Height Range:</strong> 6-138m</p>
+            <p><strong>Mean Height:</strong> 27.2m</p>
+        </div>
+    </div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <script>
+        // Initialize map
+        var map = L.map('map').setView([47.607, -122.33500000000001], 16);
+
+        // Add OpenStreetMap tiles
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+            maxZoom: 19
+        }).addTo(map);
+
+        // Building data
+        var buildings = [
+    {
+        "id": "osm_35824976",
+        "lat": 47.60807709356631,
+        "lon": -122.33394093127433,
+        "height": 36.0,
+        "area": 4686.4549752642015,
+        "type": "hotel",
+        "model": "osm_35824976.glb"
+    },
+    {
+        "id": "osm_139320255",
+        "lat": 47.60619040754375,
+        "lon": -122.33389921542087,
+        "height": 12.0,
+        "area": 3566.7383961656456,
+        "type": "office",
+        "model": "osm_139320255.glb"
+    },
+    {
+        "id": "osm_140436171",
+        "lat": 47.60720428586827,
+        "lon": -122.33616299563867,
+        "height": 12.0,
+        "area": 4484.405828649324,
+        "type": "office",
+        "model": "osm_140436171.glb"
+    },
+    {
+        "id": "osm_223171636",
+        "lat": 47.60813114593774,
+        "lon": -122.33583329887112,
+        "height": 21.0,
+        "area": 1315.6235785701351,
+        "type": "garage",
+        "model": "osm_223171636.glb"
+    },
+    {
+        "id": "osm_232079582",
+        "lat": 47.607950666779445,
+        "lon": -122.33505988123305,
+        "height": 10.0,
+        "area": 447.2738424265717,
+        "type": "yes",
+        "model": "osm_232079582.glb"
+    },
+    {
+        "id": "osm_232079583",
+        "lat": 47.607409339581345,
+        "lon": -122.33519374285157,
+        "height": 39.0,
+        "area": 1252.3083280019473,
+        "type": "yes",
+        "model": "osm_232079583.glb"
+    },
+    {
+        "id": "osm_232079587",
+        "lat": 47.60761662126617,
+        "lon": -122.33477308555717,
+        "height": 84.0,
+        "area": 1383.1440023699372,
+        "type": "commercial",
+        "model": "osm_232079587.glb"
+    },
+    {
+        "id": "osm_232080287",
+        "lat": 47.60662616387421,
+        "lon": -122.3354046645982,
+        "height": 138.0,
+        "area": 1732.616015286139,
+        "type": "yes",
+        "model": "osm_232080287.glb"
+    },
+    {
+        "id": "osm_232080293",
+        "lat": 47.60626690341315,
+        "lon": -122.33526249561704,
+        "height": 10.0,
+        "area": 124.28901710721937,
+        "type": "yes",
+        "model": "osm_232080293.glb"
+    },
+    {
+        "id": "osm_232080294",
+        "lat": 47.60633890000001,
+        "lon": -122.33497353333333,
+        "height": 10.0,
+        "area": 36.48444893908077,
+        "type": "yes",
+        "model": "osm_232080294.glb"
+    },
+    {
+        "id": "osm_232080296",
+        "lat": 47.60623697130717,
+        "lon": -122.33564097234186,
+        "height": 15.0,
+        "area": 1233.35492372812,
+        "type": "yes",
+        "model": "osm_232080296.glb"
+    },
+    {
+        "id": "osm_232080299",
+        "lat": 47.60738726386762,
+        "lon": -122.33364794426934,
+        "height": 9.0,
+        "area": 1643.19104962951,
+        "type": "yes",
+        "model": "osm_232080299.glb"
+    },
+    {
+        "id": "osm_232080836",
+        "lat": 47.605674300000004,
+        "lon": -122.33511435,
+        "height": 6.0,
+        "area": 2242.2560306567284,
+        "type": "yes",
+        "model": "osm_232080836.glb"
+    },
+    {
+        "id": "osm_232080837",
+        "lat": 47.606935821380496,
+        "lon": -122.3341242353793,
+        "height": 33.0,
+        "area": 1082.2501555469746,
+        "type": "hotel",
+        "model": "osm_232080837.glb"
+    },
+    {
+        "id": "osm_232080841",
+        "lat": 47.60583208331964,
+        "lon": -122.33466165590937,
+        "height": 39.0,
+        "area": 2147.0157328877563,
+        "type": "commercial",
+        "model": "osm_232080841.glb"
+    },
+    {
+        "id": "osm_232080846",
+        "lat": 47.60696946813384,
+        "lon": -122.334790626317,
+        "height": 39.0,
+        "area": 1366.882646887976,
+        "type": "service",
+        "model": "osm_232080846.glb"
+    },
+    {
+        "id": "osm_232080847",
+        "lat": 47.607274997692336,
+        "lon": -122.33430942928696,
+        "height": 9.0,
+        "area": 309.63131676240215,
+        "type": "yes",
+        "model": "osm_232080847.glb"
+    },
+    {
+        "id": "osm_335417547",
+        "lat": 47.60768753321886,
+        "lon": -122.33545703614588,
+        "height": 15.0,
+        "area": 1177.8236392363212,
+        "type": "yes",
+        "model": "osm_335417547.glb"
+    },
+    {
+        "id": "osm_357562885",
+        "lat": 47.60651616278805,
+        "lon": -122.33589845292236,
+        "height": 15.0,
+        "area": 1177.7959598709929,
+        "type": "yes",
+        "model": "osm_357562885.glb"
+    },
+    {
+        "id": "osm_739717658",
+        "lat": 47.606690452385685,
+        "lon": -122.33454593232071,
+        "height": 10.0,
+        "area": 1145.7832197957916,
+        "type": "office",
+        "model": "osm_739717658.glb"
+    },
+    {
+        "id": "osm_1123129665",
+        "lat": 47.607207573765145,
+        "lon": -122.33451810569503,
+        "height": 10.0,
+        "area": 253.22097692653318,
+        "type": "yes",
+        "model": "osm_1123129665.glb"
+    }
+];
+
+        // Function to get color based on height
+        function getColor(height) {
+            if (height < 15) return '#2ecc71';
+            if (height < 30) return '#3498db';
+            if (height < 60) return '#f39c12';
+            return '#e74c3c';
+        }
+
+        // Add buildings to map
+        buildings.forEach(function(building) {
+            var color = getColor(building.height);
+            var radius = 5 + (building.height / 10);
+
+            var circle = L.circleMarker([building.lat, building.lon], {
+                radius: radius,
+                fillColor: color,
+                color: '#333',
+                weight: 1,
+                opacity: 1,
+                fillOpacity: 0.7
+            });
+
+            // Create popup
+            var popupContent = `
+                <div class="building-popup">
+                    <h4>${building.id}</h4>
+                    <table>
+                        <tr><td>Type:</td><td>${building.type}</td></tr>
+                        <tr><td>Height:</td><td>${building.height.toFixed(1)} m</td></tr>
+                        <tr><td>Area:</td><td>${building.area.toFixed(1)} m²</td></tr>
+                        <tr><td>Model:</td><td>${building.model}</td></tr>
+                    </table>
+                </div>
+            `;
+
+            circle.bindPopup(popupContent);
+            circle.addTo(map);
+
+            // Add height label
+            var label = L.marker([building.lat, building.lon], {
+                icon: L.divIcon({
+                    className: 'height-label',
+                    html: '<div style="font-size: 9px; color: black; text-shadow: -1px -1px 0 white, 1px -1px 0 white, -1px 1px 0 white, 1px 1px 0 white; font-weight: bold;">' +
+                          building.height.toFixed(0) + 'm</div>',
+                    iconSize: [30, 10],
+                    iconAnchor: [15, -5]
+                })
+            });
+            label.addTo(map);
+        });
+
+        // Add bounding box
+        var bounds = [
+            [47.606, -122.336],
+            [47.608, -122.334]
+        ];
+        L.rectangle(bounds, {
+            color: '#e74c3c',
+            weight: 2,
+            fillOpacity: 0,
+            dashArray: '5, 5'
+        }).addTo(map);
+    </script>
+</body>
+</html>

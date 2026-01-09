@@ -1,0 +1,320 @@
+{
+  "metadata": {
+    "generated": "2026-01-09T00:24:40.279999",
+    "generator": "urban-terrain-generator v0.1",
+    "coordinate_system": {
+      "type": "local_meters",
+      "origin_lat": 47.607,
+      "origin_lon": -122.33500000000001,
+      "description": "Local coordinate system with origin at specified lat/lon, +X = East, +Y = North, +Z = Up"
+    },
+    "bounding_box": {
+      "north": 47.608,
+      "south": 47.606,
+      "east": -122.334,
+      "west": -122.336
+    }
+  },
+  "statistics": {
+    "total_buildings": 21,
+    "unique_models": 21,
+    "total_roads": 0
+  },
+  "buildings": {
+    "osm_35824976": {
+      "model_file": "osm_35824976.glb",
+      "is_instance": false,
+      "prototype": null,
+      "position": {
+        "lat": 47.60807709356631,
+        "lon": -122.33394093127433
+      },
+      "properties": {
+        "height_m": 36.0,
+        "building_type": "hotel",
+        "area_sqm": 4686.4549752642015
+      }
+    },
+    "osm_139320255": {
+      "model_file": "osm_139320255.glb",
+      "is_instance": false,
+      "prototype": null,
+      "position": {
+        "lat": 47.60619040754375,
+        "lon": -122.33389921542087
+      },
+      "properties": {
+        "height_m": 12.0,
+        "building_type": "office",
+        "area_sqm": 3566.7383961656456
+      }
+    },
+    "osm_140436171": {
+      "model_file": "osm_140436171.glb",
+      "is_instance": false,
+      "prototype": null,
+      "position": {
+        "lat": 47.60720428586827,
+        "lon": -122.33616299563867
+      },
+      "properties": {
+        "height_m": 12.0,
+        "building_type": "office",
+        "area_sqm": 4484.405828649324
+      }
+    },
+    "osm_223171636": {
+      "model_file": "osm_223171636.glb",
+      "is_instance": false,
+      "prototype": null,
+      "position": {
+        "lat": 47.60813114593774,
+        "lon": -122.33583329887112
+      },
+      "properties": {
+        "height_m": 21.0,
+        "building_type": "garage",
+        "area_sqm": 1315.6235785701351
+      }
+    },
+    "osm_232079582": {
+      "model_file": "osm_232079582.glb",
+      "is_instance": false,
+      "prototype": null,
+      "position": {
+        "lat": 47.607950666779445,
+        "lon": -122.33505988123305
+      },
+      "properties": {
+        "height_m": 10.0,
+        "building_type": "yes",
+        "area_sqm": 447.2738424265717
+      }
+    },
+    "osm_232079583": {
+      "model_file": "osm_232079583.glb",
+      "is_instance": false,
+      "prototype": null,
+      "position": {
+        "lat": 47.607409339581345,
+        "lon": -122.33519374285157
+      },
+      "properties": {
+        "height_m": 39.0,
+        "building_type": "yes",
+        "area_sqm": 1252.3083280019473
+      }
+    },
+    "osm_232079587": {
+      "model_file": "osm_232079587.glb",
+      "is_instance": false,
+      "prototype": null,
+      "position": {
+        "lat": 47.60761662126617,
+        "lon": -122.33477308555717
+      },
+      "properties": {
+        "height_m": 84.0,
+        "building_type": "commercial",
+        "area_sqm": 1383.1440023699372
+      }
+    },
+    "osm_232080287": {
+      "model_file": "osm_232080287.glb",
+      "is_instance": false,
+      "prototype": null,
+      "position": {
+        "lat": 47.60662616387421,
+        "lon": -122.3354046645982
+      },
+      "properties": {
+        "height_m": 138.0,
+        "building_type": "yes",
+        "area_sqm": 1732.616015286139
+      }
+    },
+    "osm_232080293": {
+      "model_file": "osm_232080293.glb",
+      "is_instance": false,
+      "prototype": null,
+      "position": {
+        "lat": 47.60626690341315,
+        "lon": -122.33526249561704
+      },
+      "properties": {
+        "height_m": 10.0,
+        "building_type": "yes",
+        "area_sqm": 124.28901710721937
+      }
+    },
+    "osm_232080294": {
+      "model_file": "osm_232080294.glb",
+      "is_instance": false,
+      "prototype": null,
+      "position": {
+        "lat": 47.60633890000001,
+        "lon": -122.33497353333333
+      },
+      "properties": {
+        "height_m": 10.0,
+        "building_type": "yes",
+        "area_sqm": 36.48444893908077
+      }
+    },
+    "osm_232080296": {
+      "model_file": "osm_232080296.glb",
+      "is_instance": false,
+      "prototype": null,
+      "position": {
+        "lat": 47.60623697130717,
+        "lon": -122.33564097234186
+      },
+      "properties": {
+        "height_m": 15.0,
+        "building_type": "yes",
+        "area_sqm": 1233.35492372812
+      }
+    },
+    "osm_232080299": {
+      "model_file": "osm_232080299.glb",
+      "is_instance": false,
+      "prototype": null,
+      "position": {
+        "lat": 47.60738726386762,
+        "lon": -122.33364794426934
+      },
+      "properties": {
+        "height_m": 9.0,
+        "building_type": "yes",
+        "area_sqm": 1643.19104962951
+      }
+    },
+    "osm_232080836": {
+      "model_file": "osm_232080836.glb",
+      "is_instance": false,
+      "prototype": null,
+      "position": {
+        "lat": 47.605674300000004,
+        "lon": -122.33511435
+      },
+      "properties": {
+        "height_m": 6.0,
+        "building_type": "yes",
+        "area_sqm": 2242.2560306567284
+      }
+    },
+    "osm_232080837": {
+      "model_file": "osm_232080837.glb",
+      "is_instance": false,
+      "prototype": null,
+      "position": {
+        "lat": 47.606935821380496,
+        "lon": -122.3341242353793
+      },
+      "properties": {
+        "height_m": 33.0,
+        "building_type": "hotel",
+        "area_sqm": 1082.2501555469746
+      }
+    },
+    "osm_232080841": {
+      "model_file": "osm_232080841.glb",
+      "is_instance": false,
+      "prototype": null,
+      "position": {
+        "lat": 47.60583208331964,
+        "lon": -122.33466165590937
+      },
+      "properties": {
+        "height_m": 39.0,
+        "building_type": "commercial",
+        "area_sqm": 2147.0157328877563
+      }
+    },
+    "osm_232080846": {
+      "model_file": "osm_232080846.glb",
+      "is_instance": false,
+      "prototype": null,
+      "position": {
+        "lat": 47.60696946813384,
+        "lon": -122.334790626317
+      },
+      "properties": {
+        "height_m": 39.0,
+        "building_type": "service",
+        "area_sqm": 1366.882646887976
+      }
+    },
+    "osm_232080847": {
+      "model_file": "osm_232080847.glb",
+      "is_instance": false,
+      "prototype": null,
+      "position": {
+        "lat": 47.607274997692336,
+        "lon": -122.33430942928696
+      },
+      "properties": {
+        "height_m": 9.0,
+        "building_type": "yes",
+        "area_sqm": 309.63131676240215
+      }
+    },
+    "osm_335417547": {
+      "model_file": "osm_335417547.glb",
+      "is_instance": false,
+      "prototype": null,
+      "position": {
+        "lat": 47.60768753321886,
+        "lon": -122.33545703614588
+      },
+      "properties": {
+        "height_m": 15.0,
+        "building_type": "yes",
+        "area_sqm": 1177.8236392363212
+      }
+    },
+    "osm_357562885": {
+      "model_file": "osm_357562885.glb",
+      "is_instance": false,
+      "prototype": null,
+      "position": {
+        "lat": 47.60651616278805,
+        "lon": -122.33589845292236
+      },
+      "properties": {
+        "height_m": 15.0,
+        "building_type": "yes",
+        "area_sqm": 1177.7959598709929
+      }
+    },
+    "osm_739717658": {
+      "model_file": "osm_739717658.glb",
+      "is_instance": false,
+      "prototype": null,
+      "position": {
+        "lat": 47.606690452385685,
+        "lon": -122.33454593232071
+      },
+      "properties": {
+        "height_m": 10.0,
+        "building_type": "office",
+        "area_sqm": 1145.7832197957916
+      }
+    },
+    "osm_1123129665": {
+      "model_file": "osm_1123129665.glb",
+      "is_instance": false,
+      "prototype": null,
+      "position": {
+        "lat": 47.607207573765145,
+        "lon": -122.33451810569503
+      },
+      "properties": {
+        "height_m": 10.0,
+        "building_type": "yes",
+        "area_sqm": 253.22097692653318
+      }
+    }
+  },
+  "roads": {}
+}

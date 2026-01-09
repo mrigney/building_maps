@@ -178,7 +178,14 @@ def extrude_buildings(buildings_gdf: gpd.GeoDataFrame, origin_lat: float, origin
     Returns:
         List of tuples: (building_id, mesh, metadata)
     """
-    from ..utils.geo_utils import polygon_to_local_coords
+    try:
+        from ..utils.geo_utils import polygon_to_local_coords
+    except ImportError:
+        # Fallback for direct script execution
+        import sys
+        from pathlib import Path
+        sys.path.insert(0, str(Path(__file__).parent.parent))
+        from utils.geo_utils import polygon_to_local_coords
 
     extruded_buildings = []
 

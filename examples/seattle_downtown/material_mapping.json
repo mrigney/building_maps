@@ -1,0 +1,37 @@
+{
+  "description": "Material group assignments for thermal property lookup",
+  "groups": {
+    "concrete": [
+      "osm_139320255",
+      "osm_140436171",
+      "osm_232079587",
+      "osm_232080841",
+      "osm_739717658"
+    ],
+    "metal": [
+      "osm_223171636"
+    ],
+    "unknown": [
+      "osm_35824976",
+      "osm_232079582",
+      "osm_232079583",
+      "osm_232080287",
+      "osm_232080293",
+      "osm_232080294",
+      "osm_232080296",
+      "osm_232080299",
+      "osm_232080836",
+      "osm_232080837",
+      "osm_232080846",
+      "osm_232080847",
+      "osm_335417547",
+      "osm_357562885",
+      "osm_1123129665"
+    ]
+  },
+  "statistics": {
+    "concrete": 5,
+    "metal": 1,
+    "unknown": 15
+  }
+}
