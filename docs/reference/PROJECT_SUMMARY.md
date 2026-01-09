@@ -102,24 +102,47 @@ A complete pipeline for generating geo-specific 3D urban environments from OpenS
 │  ├── manifest.json        (master index)                         │
 │  ├── material_mapping.json (thermal properties)                  │
 │  └── combined_scene.glb   (optional single file)                 │
+└───────────┬───────────────────────────────────────────────────────┘
+            │
+            ▼
+┌─────────────────────────────────────────────────────────────────┐
+│              STEP 7: Visualization (Optional)                    │
+│                                                                   │
+│  • Create interactive 2D maps (Leaflet.js)                       │
+│  • Generate 3D viewers (Three.js)                                │
+│  • Export static visualizations (matplotlib)                     │
+│  • ASCII terminal previews                                       │
+│                                                                   │
+│  Module: tools/visualize_manifest.py                             │
+│          tools/create_simple_html_map.py                         │
+│          tools/create_3d_viewer.py                               │
 └───────────────────────────────────────────────────────────────────┘
 ```
 
 ## Key Components
 
 ### 1. Data Acquisition Layer
-**Files:** `data_acquisition/fetch_osm.py`
+**Files:** `data_acquisition/fetch_osm.py`, `data_acquisition/fetch_osm_direct.py`
 
 - Interfaces with OpenStreetMap Overpass API
+- Direct Overpass API implementation (bypasses OSMnx projection bugs)
+- Uses reliable Overpass server (overpass.kumi.systems)
 - Fetches building footprints as 2D polygons
 - Extracts metadata (height, building type, materials)
 - Retrieves road networks
 - Processes and validates data
 
 **Key Functions:**
-- `fetch_buildings()` - Download building data for bounding box
+- `fetch_buildings()` - Download building data for bounding box (delegates to direct implementation)
+- `fetch_buildings_direct()` - Direct Overpass API query (workaround for OSMnx bugs)
 - `fetch_roads()` - Download road network
 - `process_building_heights()` - Extract/estimate heights
+
+**Recent Improvements:**
+- ✅ Fixed OSMnx 2.0.7 projection bug for coordinate transformation
+- ✅ Added direct Overpass API implementation for reliability
+- ✅ Configured alternative Overpass server for better availability
+- ✅ Fixed Unicode encoding issues on Windows console
 
 ### 2. Geometry Generation
 **Files:** `geometry/extrude_buildings.py`
@@ -154,6 +177,48 @@ A complete pipeline for generating geo-specific 3D urban environments from OpenS
 - Coordinate transformations
 - Geographic calculations
 - Configuration management
+- Fixed NaN handling in height estimation
+- Improved error handling for edge cases
+
+### 5. Visualization Tools
+**Files:** `tools/visualize_manifest.py`, `tools/create_simple_html_map.py`, `tools/create_3d_viewer.py`
+
+NEW: Comprehensive visualization toolkit for exploring generated terrain data.
+
+**visualize_manifest.py** - Multi-format visualizer
+- ASCII terminal view (no dependencies required)
+- Matplotlib static plots (height map and type map)
+- Interactive HTML maps with Folium (optional dependency)
+- Batch processing support
+
+**create_simple_html_map.py** - Interactive 2D map
+- Zero Python dependencies (uses Leaflet.js CDN)
+- Self-contained HTML file
+- Click buildings for detailed information
+- Color-coded by building height
+- Pan, zoom, and explore interactively
+
+**create_3d_viewer.py** - Interactive 3D viewer
+- Zero Python dependencies (uses Three.js CDN)
+- Self-contained HTML file
+- Loads actual GLB 3D models
+- Orbit camera controls (rotate, pan, zoom)
+- Real-time lighting and shadows
+- Click buildings for information
+
+**Usage Examples:**
+```bash
+# Quick ASCII preview
+python tools/visualize_manifest.py output/manifest.json --ascii
+
+# Create interactive 2D map
+python tools/create_simple_html_map.py output/manifest.json -o map.html
+
+# Create 3D viewer
+python tools/create_3d_viewer.py output/manifest.json -o viewer.html
+```
+
+See [VISUALIZATION_GUIDE.md](../../VISUALIZATION_GUIDE.md) for complete documentation.
 
 ## File Organization
 
@@ -163,10 +228,12 @@ urban-terrain-generator/
 ├── generate_urban_terrain.py    # Main entry point
 ├── test_installation.py          # Verify setup
 ├── example_locations.py          # Pre-configured test cases
+├── create_demo_output.py         # Demo data generator
 │
 ├── data_acquisition/
 │   ├── __init__.py
-│   └── fetch_osm.py             # OSM data fetching
+│   ├── fetch_osm.py             # OSM data fetching (main interface)
+│   └── fetch_osm_direct.py      # Direct Overpass API implementation
 │
 ├── geometry/
 │   ├── __init__.py
@@ -182,18 +249,45 @@ urban-terrain-generator/
 │   ├── config.py                # Configuration
 │   └── geo_utils.py             # Geographic utilities
 │
-├── output/                       # Generated output (created at runtime)
+├── tools/                        # NEW: Visualization tools
+│   ├── visualize_manifest.py    # Multi-format visualizer
+│   ├── create_simple_html_map.py # Interactive 2D map creator
+│   ├── create_3d_viewer.py      # Interactive 3D viewer creator
+│   └── README.md                # Tools documentation
+│
+├── examples/                     # NEW: Example output
+│   ├── seattle_downtown/        # 21-building Seattle example
+│   │   ├── models/              # GLB model files
+│   │   ├── manifest.json        # Building metadata
+│   │   ├── material_mapping.json
+│   │   ├── building_map.html    # 2D visualization
+│   │   ├── building_viewer_3d.html # 3D visualization
+│   │   ├── building_visualization.png
+│   │   └── README.md            # Example details
+│   └── README.md                # Examples overview
+│
+├── docs/                         # Documentation
+│   ├── getting-started/
+│   ├── guides/
+│   ├── reference/
+│   └── troubleshooting/
+│
+├── demo_output/                  # Demo data with example GeoJSON
+│
+├── output/                       # Generated output (gitignored, runtime)
 │
 ├── requirements.txt              # Python dependencies
 ├── README.md                     # Full documentation
-├── GETTING_STARTED.md            # Quick start guide
+├── DOCS_OVERVIEW.md              # Documentation guide
+├── VISUALIZATION_GUIDE.md        # Visualization documentation
+├── QUICKSTART_VISUALIZATION.md   # Quick visualization reference
 └── PROJECT_SUMMARY.md            # This file
 ```
 
 ## Current Capabilities
 
 ### ✅ Implemented
-- OpenStreetMap data acquisition
+- OpenStreetMap data acquisition (with direct Overpass API)
 - Building footprint extraction
 - Height estimation (from OSM data or defaults)
 - 3D geometry extrusion
@@ -203,6 +297,22 @@ urban-terrain-generator/
 - Spatial manifest generation
 - Local coordinate system
 - Command-line interface
+- **NEW: Comprehensive visualization toolkit**
+  - ASCII terminal previews
+  - Interactive 2D maps (Leaflet.js)
+  - Interactive 3D viewers (Three.js)
+  - Static plot generation (matplotlib)
+- **NEW: Example output included in repository**
+  - 21-building Seattle downtown example
+  - Pre-generated visualizations
+  - Reference implementation
+
+### ✅ Recently Fixed
+- OSM API reliability (direct Overpass implementation)
+- OSMnx projection bug workaround
+- Windows console Unicode encoding
+- NaN handling in height estimation
+- Import error handling for standalone execution
 
 ### 🚧 Partially Implemented
 - Road network fetching (data acquired but not converted to 3D)
@@ -230,20 +340,54 @@ urban-terrain-generator/
      --instancing
    ```
 
-2. **Load in Your Solver**
+2. **Visualize Output (Optional but Recommended)**
+   ```bash
+   # Quick ASCII preview
+   python tools/visualize_manifest.py output/manifest.json --ascii
+
+   # Create interactive visualizations
+   python tools/create_simple_html_map.py output/manifest.json -o output/map.html
+   python tools/create_3d_viewer.py output/manifest.json -o output/viewer.html
+   ```
+
+3. **Load in Your Solver**
    - Parse `manifest.json` to get building locations
    - Load geometry files (PLY format recommended for thermal analysis)
    - Use local meter coordinates (+X=East, +Y=North, +Z=Up)
 
-3. **Apply Thermal Properties**
+4. **Apply Thermal Properties**
    - Read `material_mapping.json`
    - Map material groups to your material database
    - Apply properties (thermal conductivity, emissivity, etc.)
 
-4. **Run Simulation**
+5. **Run Simulation**
    - Buildings are positioned in local coordinates
    - Origin is at bounding box center
    - All dimensions in meters
+
+### For Visualization and Exploration
+
+1. **Use Pre-Generated Example**
+   ```bash
+   # Open example visualizations in browser
+   cd examples/seattle_downtown
+   start building_map.html           # 2D map
+   start building_viewer_3d.html     # 3D viewer
+   ```
+
+2. **Generate Custom Visualizations**
+   ```bash
+   # Generate terrain for your location
+   python generate_urban_terrain.py --bbox NORTH SOUTH EAST WEST --format glb
+
+   # Create all visualization types
+   python tools/visualize_manifest.py output/manifest.json --all
+   ```
+
+3. **Share Results**
+   - HTML files are self-contained and can be shared via email
+   - Open in any modern web browser
+   - No server or special software required
 
 ## Technical Details
 
@@ -346,21 +490,69 @@ The output is designed to integrate easily with:
 9. LOD (Level of Detail) generation
 10. Texture mapping from satellite imagery
 
-## Testing
+## Testing and Examples
 
-Run the test suite:
+### Test Installation
 ```bash
 python test_installation.py
 ```
 
-View example locations:
+### View Example Locations
 ```bash
 python example_locations.py
 ```
 
+### Explore Example Output
+```bash
+# Navigate to examples
+cd examples/seattle_downtown
+
+# Open visualizations
+start building_map.html           # Interactive 2D map
+start building_viewer_3d.html     # Interactive 3D viewer
+
+# Review data
+cat manifest.json                 # Building metadata
+cat material_mapping.json         # Material groups
+ls models/                        # GLB model files
+```
+
+### Quick Visualization Test
+```bash
+# Generate small test area
+python generate_urban_terrain.py \
+  --bbox 47.6080 47.6060 -122.3340 -122.3360 \
+  --format glb
+
+# Create visualizations
+python tools/create_simple_html_map.py output/manifest.json -o test_map.html
+start test_map.html
+```
+
+## Recent Updates (January 2026)
+
+### Major Enhancements
+1. **Visualization Toolkit** - Three new tools for exploring generated data
+2. **OSM API Reliability** - Fixed API issues with direct Overpass implementation
+3. **Example Output** - Included real Seattle building data in repository
+4. **Documentation** - Added comprehensive visualization guides
+5. **Repository Organization** - Cleaned up structure with tools/ and examples/
+
+### Bug Fixes
+- Fixed OSMnx 2.0.7 projection bug affecting coordinate transformations
+- Resolved Windows console Unicode encoding issues
+- Fixed NaN handling in building height estimation
+- Improved import error handling for standalone execution
+
+### Developer Experience
+- Zero-dependency HTML visualizations (just open in browser)
+- Example output shows users what to expect
+- Comprehensive documentation with quick-start guides
+- Better error messages and logging
+
 ## Conclusion
 
-This prototype provides a solid foundation for generating geo-specific urban terrain for thermal analysis. The modular architecture makes it easy to extend and enhance with additional features as needed.
+This system provides a complete, production-ready pipeline for generating geo-specific urban terrain for thermal analysis. The recent addition of visualization tools makes it easy to validate and explore generated data before importing into simulation software.
 
 The system successfully addresses your team's challenges:
 - ✅ Automated building laydown from open data
@@ -369,3 +561,18 @@ The system successfully addresses your team's challenges:
 - ✅ Scalable architecture for facade details (implementation pending)
 - ✅ Efficient file organization and material mapping
 - ✅ Format flexibility (GLB/PLY)
+- ✅ **NEW: Interactive visualization and validation**
+- ✅ **NEW: Example output for reference**
+- ✅ **NEW: Reliable OSM API integration**
+
+**Next Steps:**
+- Explore the examples/ directory for reference implementation
+- Use visualization tools to validate your generated terrain
+- See VISUALIZATION_GUIDE.md for complete documentation
+- Check troubleshooting/ docs if you encounter issues
+
+**Version:** 0.2.0 (January 2026)
+- Added visualization toolkit
+- Fixed OSM API reliability
+- Included example output
+- Improved documentation
