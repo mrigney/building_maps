@@ -23,9 +23,10 @@ python tools/visualize_manifest.py output/manifest.json --all
 ```
 
 **Features:**
-- ASCII art visualization in terminal
-- Static matplotlib plots (2 panels: height and type)
-- Interactive Folium HTML maps
+- ASCII art visualization in terminal with buildings and roads
+- Static matplotlib plots (2 panels: height and type) with road network overlay
+- Interactive Folium HTML maps with layer control for roads/buildings
+- Road network statistics and summary
 - Batch processing support
 
 **Dependencies:**
@@ -47,9 +48,11 @@ python tools/create_simple_html_map.py output/manifest.json -o map.html
 - Zero Python dependencies (uses Leaflet.js CDN)
 - Self-contained HTML file
 - Interactive pan/zoom
-- Click buildings for details
-- Color-coded by height
-- Statistics panel
+- Click buildings and roads for details
+- Buildings color-coded by height
+- Roads color-coded by type with variable width
+- Statistics panel showing building and road counts
+- Road type legend
 
 **Best for:** Quick sharing and simple visualization
 
@@ -66,9 +69,11 @@ python tools/create_3d_viewer.py output/manifest.json -o viewer_3d.html
 **Features:**
 - Zero Python dependencies (uses Three.js CDN)
 - Self-contained HTML file
-- Loads actual GLB models
+- Loads actual GLB models for buildings
+- 3D road network as tube geometries at ground level
+- Roads color-coded by type with realistic widths
 - Orbit camera controls
-- Click buildings for information
+- Click buildings or roads for information
 - Real-time lighting and shadows
 - Ground plane and grid
 
@@ -76,7 +81,7 @@ python tools/create_3d_viewer.py output/manifest.json -o viewer_3d.html
 - Left mouse: Rotate
 - Right mouse: Pan
 - Scroll wheel: Zoom
-- Click: Select building
+- Click: Select building or road
 
 **Best for:** Presentations and detailed exploration
 
@@ -84,13 +89,13 @@ python tools/create_3d_viewer.py output/manifest.json -o viewer_3d.html
 
 ## Quick Reference
 
-| Tool | Output | Dependencies | Interactive | Best Use Case |
-|------|--------|--------------|-------------|---------------|
-| `visualize_manifest.py --ascii` | Terminal | None | No | Quick check |
-| `visualize_manifest.py --plot` | PNG/PDF | matplotlib | No | Documentation |
-| `visualize_manifest.py --html` | HTML | folium | Yes | Detailed maps |
-| `create_simple_html_map.py` | HTML | None | Yes | Easy sharing |
-| `create_3d_viewer.py` | HTML | None | Yes | 3D exploration |
+| Tool | Output | Dependencies | Interactive | Shows Roads | Best Use Case |
+|------|--------|--------------|-------------|-------------|---------------|
+| `visualize_manifest.py --ascii` | Terminal | None | No | Yes | Quick check |
+| `visualize_manifest.py --plot` | PNG/PDF | matplotlib | No | Yes | Documentation |
+| `visualize_manifest.py --html` | HTML | folium | Yes | Yes | Detailed maps |
+| `create_simple_html_map.py` | HTML | None | Yes | Yes | Easy sharing |
+| `create_3d_viewer.py` | HTML | None | Yes | Yes | 3D exploration |
 
 ## Installation
 

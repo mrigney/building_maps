@@ -20,6 +20,7 @@ def create_3d_viewer(manifest_path: str, output_path: str = "building_viewer_3d.
         manifest = json.load(f)
 
     buildings = manifest.get('buildings', {})
+    roads = manifest.get('roads', {})
     metadata = manifest.get('metadata', {})
     bbox = metadata.get('bounding_box', {})
 
@@ -51,6 +52,18 @@ def create_3d_viewer(manifest_path: str, output_path: str = "building_viewer_3d.
             'height': height,
             'type': props.get('building_type', 'unknown')
         })
+
+    # Prepare road data
+    road_data = []
+    for road_id, data in roads.items():
+        coords = data.get('coordinates', [])
+        if len(coords) >= 2:
+            road_data.append({
+                'id': road_id,
+                'type': data.get('type', 'unknown'),
+                'name': data.get('name', 'Unnamed'),
+                'coordinates': coords  # List of [lat, lon] pairs
+            })
 
     # Calculate center for camera positioning
     center_lat = (bbox.get('north', 0) + bbox.get('south', 0)) / 2
@@ -125,6 +138,7 @@ def create_3d_viewer(manifest_path: str, output_path: str = "building_viewer_3d.
     <div id="info">
         <h3>3D Building Viewer</h3>
         <p><strong>Total Buildings:</strong> {len(buildings)}</p>
+        <p><strong>Total Roads:</strong> {len(road_data)}</p>
         <p><strong>Area:</strong> ({bbox.get('south'):.4f}, {bbox.get('west'):.4f}) to ({bbox.get('north'):.4f}, {bbox.get('east'):.4f})</p>
         <p id="selected-info"></p>
     </div>
@@ -205,6 +219,37 @@ def create_3d_viewer(manifest_path: str, output_path: str = "building_viewer_3d.
         // Building data
         const buildings = {json.dumps(building_data, indent=4)};
 
+        // Road data
+        const roads = {json.dumps(road_data, indent=4)};
+
+        // Road color mapping
+        const roadColors = {{
+            'motorway': 0xe74c3c,
+            'trunk': 0xe67e22,
+            'primary': 0xf39c12,
+            'secondary': 0xf1c40f,
+            'tertiary': 0x95a5a6,
+            'residential': 0x3498db,
+            'service': 0xbdc3c7,
+            'footway': 0x2ecc71,
+            'path': 0x27ae60,
+            'unknown': 0x7f8c8d
+        }};
+
+        // Road width mapping (in meters)
+        const roadWidths = {{
+            'motorway': 8,
+            'trunk': 7,
+            'primary': 6,
+            'secondary': 5,
+            'tertiary': 4,
+            'residential': 3,
+            'service': 2,
+            'footway': 1.5,
+            'path': 1,
+            'unknown': 3
+        }};
+
         // Calculate coordinate transformation
         const centerLat = {center_lat};
         const centerLon = {center_lon};
@@ -216,6 +261,54 @@ def create_3d_viewer(manifest_path: str, output_path: str = "building_viewer_3d.
             const y = (lat - centerLat) * metersPerDegreeLat;
             return {{ x, y }};
         }}
+
+        // Create roads as flat geometries on the ground
+        roads.forEach((road) => {{
+            const points = [];
+            road.coordinates.forEach((coord) => {{
+                const pos = latLonToMeters(coord[0], coord[1]);
+                points.push(new THREE.Vector3(pos.x, 0.1, pos.y)); // Slightly above ground to avoid z-fighting
+            }});
+
+            // Create line geometry
+            const geometry = new THREE.BufferGeometry().setFromPoints(points);
+
+            // Get road properties
+            const color = roadColors[road.type] || roadColors['unknown'];
+            const width = roadWidths[road.type] || roadWidths['unknown'];
+
+            const material = new THREE.LineBasicMaterial({{
+                color: color,
+                linewidth: width // Note: linewidth > 1 only works with WebGLRenderer on some platforms
+            }});
+
+            const line = new THREE.Line(geometry, material);
+            line.userData = {{
+                roadId: road.id,
+                roadType: road.type,
+                roadName: road.name
+            }};
+            scene.add(line);
+
+            // Add road as a mesh tube for better visibility and shadows
+            if (points.length >= 2) {{
+                const curve = new THREE.CatmullRomCurve3(points);
+                const tubeGeometry = new THREE.TubeGeometry(curve, points.length * 2, width / 2, 8, false);
+                const tubeMaterial = new THREE.MeshStandardMaterial({{
+                    color: color,
+                    roughness: 0.9,
+                    metalness: 0.1
+                }});
+                const tube = new THREE.Mesh(tubeGeometry, tubeMaterial);
+                tube.receiveShadow = true;
+                tube.userData = {{
+                    roadId: road.id,
+                    roadType: road.type,
+                    roadName: road.name
+                }};
+                scene.add(tube);
+            }}
+        }});
 
         // Load buildings
         const loader = new GLTFLoader();
@@ -307,17 +400,23 @@ def create_3d_viewer(manifest_path: str, output_path: str = "building_viewer_3d.
 
                 // Try to find userData in parent objects
                 let parent = object.parent;
-                while (parent && !userData.buildingId) {{
+                while (parent && !userData.buildingId && !userData.roadId) {{
                     userData = parent.userData;
                     parent = parent.parent;
                 }}
 
                 if (userData.buildingId) {{
                     document.getElementById('selected-info').innerHTML =
-                        `<strong>Selected:</strong><br>` +
+                        `<strong>Selected Building:</strong><br>` +
                         `ID: ${{userData.buildingId}}<br>` +
                         `Type: ${{userData.buildingType}}<br>` +
                         `Height: ${{userData.height.toFixed(1)}}m`;
+                }} else if (userData.roadId) {{
+                    document.getElementById('selected-info').innerHTML =
+                        `<strong>Selected Road:</strong><br>` +
+                        `Name: ${{userData.roadName}}<br>` +
+                        `Type: ${{userData.roadType}}<br>` +
+                        `ID: ${{userData.roadId}}`;
                 }}
             }}
         }}
@@ -348,6 +447,8 @@ def create_3d_viewer(manifest_path: str, output_path: str = "building_viewer_3d.
         f.write(html_content)
 
     print(f"Created 3D viewer: {output_path}")
+    print(f"  - {len(buildings)} buildings")
+    print(f"  - {len(road_data)} roads")
     print(f"Open the file in your web browser to view the 3D scene!")
     print(f"\nNote: The 3D models will load from: {models_dir.relative_to(Path(output_path).parent)}")
     print(f"Make sure the manifest and models are in the correct relative locations.")

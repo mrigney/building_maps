@@ -178,11 +178,12 @@ def visualize_html(manifest: dict, output_path: str = "visualization.html"):
         return
 
     buildings = manifest.get('buildings', {})
+    roads = manifest.get('roads', {})
     metadata = manifest.get('metadata', {})
     bbox = metadata.get('bounding_box', {})
 
-    if not buildings:
-        print("No buildings found in manifest")
+    if not buildings and not roads:
+        print("No buildings or roads found in manifest")
         return
 
     # Calculate center
@@ -196,7 +197,55 @@ def visualize_html(manifest: dict, output_path: str = "visualization.html"):
         tiles='OpenStreetMap'
     )
 
+    # Define road colors
+    road_colors = {
+        'motorway': '#e74c3c',
+        'trunk': '#e67e22',
+        'primary': '#f39c12',
+        'secondary': '#f1c40f',
+        'tertiary': '#95a5a6',
+        'residential': '#3498db',
+        'service': '#bdc3c7',
+        'footway': '#2ecc71',
+        'path': '#27ae60',
+        'unknown': '#7f8c8d'
+    }
+
+    # Add roads first (so they appear under buildings)
+    road_feature_group = folium.FeatureGroup(name='Roads')
+    for road_id, road_data in roads.items():
+        coords = road_data.get('coordinates', [])
+        road_type = road_data.get('type', 'unknown')
+        road_name = road_data.get('name', 'Unnamed')
+        color = road_colors.get(road_type, road_colors['unknown'])
+
+        if len(coords) >= 2:
+            # Convert to folium format [lat, lon]
+            locations = [[c[0], c[1]] for c in coords]
+
+            # Create popup
+            popup_html = f"""
+            <div style="font-family: Arial; width: 180px;">
+                <h4 style="margin: 0 0 10px 0;">Road: {road_name}</h4>
+                <table style="width: 100%;">
+                    <tr><td><b>Type:</b></td><td>{road_type}</td></tr>
+                    <tr><td><b>ID:</b></td><td>{road_id}</td></tr>
+                </table>
+            </div>
+            """
+
+            folium.PolyLine(
+                locations=locations,
+                color=color,
+                weight=3,
+                opacity=0.7,
+                popup=folium.Popup(popup_html, max_width=250)
+            ).add_to(road_feature_group)
+
+    road_feature_group.add_to(m)
+
     # Add buildings
+    building_feature_group = folium.FeatureGroup(name='Buildings')
     heights = []
     for building_id, data in buildings.items():
         pos = data.get('position', {})
@@ -243,7 +292,7 @@ def visualize_html(manifest: dict, output_path: str = "visualization.html"):
             fillColor=color,
             fillOpacity=0.7,
             weight=2
-        ).add_to(m)
+        ).add_to(building_feature_group)
 
         # Add label
         folium.Marker(
@@ -255,26 +304,38 @@ def visualize_html(manifest: dict, output_path: str = "visualization.html"):
                     {height:.0f}m
                 </div>
             ''')
-        ).add_to(m)
+        ).add_to(building_feature_group)
+
+    building_feature_group.add_to(m)
 
     # Add legend
     legend_html = f'''
     <div style="position: fixed;
-                top: 10px; right: 10px; width: 180px;
+                top: 10px; right: 10px; width: 200px;
                 background-color: white; z-index:9999;
                 border:2px solid grey; border-radius: 5px;
-                padding: 10px; font-size: 12px;">
+                padding: 10px; font-size: 11px;">
         <h4 style="margin-top: 0;">Building Heights</h4>
-        <p style="margin: 5px 0;"><span style="color: green;">●</span> < 15m (Low)</p>
-        <p style="margin: 5px 0;"><span style="color: blue;">●</span> 15-30m (Medium)</p>
-        <p style="margin: 5px 0;"><span style="color: orange;">●</span> 30-60m (High)</p>
-        <p style="margin: 5px 0;"><span style="color: red;">●</span> > 60m (Very High)</p>
-        <hr>
-        <p style="margin: 5px 0;"><b>Total Buildings:</b> {len(buildings)}</p>
-        <p style="margin: 5px 0;"><b>Height Range:</b> {min(heights):.0f}-{max(heights):.0f}m</p>
+        <p style="margin: 3px 0;"><span style="color: green;">●</span> < 15m (Low)</p>
+        <p style="margin: 3px 0;"><span style="color: blue;">●</span> 15-30m (Medium)</p>
+        <p style="margin: 3px 0;"><span style="color: orange;">●</span> 30-60m (High)</p>
+        <p style="margin: 3px 0;"><span style="color: red;">●</span> > 60m (Very High)</p>
+        <hr style="margin: 8px 0;">
+        <h4 style="margin: 5px 0 3px 0;">Road Types</h4>
+        <p style="margin: 2px 0; font-size: 10px;"><span style="color: #f39c12;">━━</span> Primary</p>
+        <p style="margin: 2px 0; font-size: 10px;"><span style="color: #f1c40f;">━━</span> Secondary</p>
+        <p style="margin: 2px 0; font-size: 10px;"><span style="color: #95a5a6;">━━</span> Tertiary</p>
+        <p style="margin: 2px 0; font-size: 10px;"><span style="color: #3498db;">━━</span> Residential</p>
+        <hr style="margin: 8px 0;">
+        <p style="margin: 3px 0;"><b>Buildings:</b> {len(buildings)}</p>
+        <p style="margin: 3px 0;"><b>Roads:</b> {len(roads)}</p>
+        {f'<p style="margin: 3px 0;"><b>Height Range:</b> {min(heights):.0f}-{max(heights):.0f}m</p>' if heights else ''}
     </div>
     '''
     m.get_root().html.add_child(folium.Element(legend_html))
+
+    # Add layer control
+    folium.LayerControl().add_to(m)
 
     # Add fullscreen option
     plugins.Fullscreen().add_to(m)

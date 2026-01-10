@@ -8,6 +8,7 @@ This directory contains example output from the Urban Terrain Generator to help 
 - **Location:** Small section of downtown Seattle, WA
 - **Size:** ~200m x 200m
 - **Buildings:** 21 buildings
+- **Roads:** 90 road segments
 - **Files:** Manifest, models, and visualizations
 
 See [seattle_downtown/README.md](seattle_downtown/README.md) for details.
@@ -17,11 +18,13 @@ See [seattle_downtown/README.md](seattle_downtown/README.md) for details.
 Each example directory contains:
 
 ### Data Files
-1. **`manifest.json`** - Complete building metadata
+1. **`manifest.json`** - Complete building and road metadata
    - Building positions (lat/lon)
    - Height and area information
    - Building types
    - Model file references
+   - Road network with coordinates
+   - Road types and names
 
 2. **`material_mapping.json`** - Material grouping data
    - Groups buildings by similar characteristics
@@ -35,20 +38,21 @@ Each example directory contains:
 ### Visualization Files
 1. **`building_map.html`** - Interactive 2D map
    - Open in any web browser
-   - Click buildings for details
+   - Click buildings and roads for details
    - Pan and zoom
-   - Color-coded by height
+   - Buildings color-coded by height
+   - Roads color-coded by type
 
 2. **`building_viewer_3d.html`** - Interactive 3D viewer
    - Open in any web browser
    - Navigate with mouse (rotate, pan, zoom)
-   - Click buildings for information
-   - See actual 3D geometry
+   - Click buildings or roads for information
+   - See actual 3D geometry with road network
 
 3. **`building_visualization.png`** - Static overview image
    - Two-panel matplotlib visualization
-   - Left: Buildings colored by height
-   - Right: Buildings colored by type
+   - Left: Buildings colored by height with road overlay
+   - Right: Buildings colored by type with road overlay
 
 ## How to Use Examples
 

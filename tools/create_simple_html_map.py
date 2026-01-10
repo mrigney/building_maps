@@ -18,6 +18,7 @@ def create_html_map(manifest: dict, output_path: str = "building_map.html"):
         output_path: Path to save HTML file
     """
     buildings = manifest.get('buildings', {})
+    roads = manifest.get('roads', {})
     metadata = manifest.get('metadata', {})
     bbox = metadata.get('bounding_box', {})
 
@@ -57,6 +58,18 @@ def create_html_map(manifest: dict, output_path: str = "building_map.html"):
 
     min_height = min(heights)
     max_height = max(heights)
+
+    # Prepare road data for JavaScript
+    road_data = []
+    for road_id, data in roads.items():
+        coords = data.get('coordinates', [])
+        if len(coords) >= 2:
+            road_data.append({
+                'id': road_id,
+                'type': data.get('type', 'unknown'),
+                'name': data.get('name', 'Unnamed'),
+                'coordinates': coords  # List of [lat, lon] pairs
+            })
 
     # Create HTML
     html_content = f"""<!DOCTYPE html>
@@ -178,8 +191,31 @@ def create_html_map(manifest: dict, output_path: str = "building_map.html"):
             <span>> 60m (Very High)</span>
         </div>
 
+        <h3 style="margin-top: 15px;">Road Types</h3>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: #e74c3c; border-radius: 2px;"></div>
+            <span>Motorway</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: #e67e22; border-radius: 2px;"></div>
+            <span>Trunk</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: #f39c12; border-radius: 2px;"></div>
+            <span>Primary</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: #f1c40f; border-radius: 2px;"></div>
+            <span>Secondary</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: #3498db; border-radius: 2px;"></div>
+            <span>Residential</span>
+        </div>
+
         <div class="stats">
             <p><strong>Total Buildings:</strong> {len(buildings)}</p>
+            <p><strong>Total Roads:</strong> {len(road_data)}</p>
             <p><strong>Height Range:</strong> {min_height:.0f}-{max_height:.0f}m</p>
             <p><strong>Mean Height:</strong> {sum(heights)/len(heights):.1f}m</p>
         </div>
@@ -201,6 +237,9 @@ def create_html_map(manifest: dict, output_path: str = "building_map.html"):
         // Building data
         var buildings = {json.dumps(building_data, indent=4)};
 
+        // Road data
+        var roads = {json.dumps(road_data, indent=4)};
+
         // Function to get color based on height
         function getColor(height) {{
             if (height < 15) return '#2ecc71';
@@ -208,6 +247,71 @@ def create_html_map(manifest: dict, output_path: str = "building_map.html"):
             if (height < 60) return '#f39c12';
             return '#e74c3c';
         }}
+
+        // Function to get road color based on type
+        function getRoadColor(roadType) {{
+            var colors = {{
+                'motorway': '#e74c3c',
+                'trunk': '#e67e22',
+                'primary': '#f39c12',
+                'secondary': '#f1c40f',
+                'tertiary': '#95a5a6',
+                'residential': '#3498db',
+                'service': '#bdc3c7',
+                'footway': '#2ecc71',
+                'path': '#27ae60',
+                'unknown': '#7f8c8d'
+            }};
+            return colors[roadType] || colors['unknown'];
+        }}
+
+        // Function to get road weight based on type
+        function getRoadWeight(roadType) {{
+            var weights = {{
+                'motorway': 5,
+                'trunk': 4,
+                'primary': 4,
+                'secondary': 3,
+                'tertiary': 3,
+                'residential': 2,
+                'service': 1,
+                'footway': 1,
+                'path': 1,
+                'unknown': 2
+            }};
+            return weights[roadType] || 2;
+        }}
+
+        // Add roads to map (draw first so buildings appear on top)
+        roads.forEach(function(road) {{
+            var color = getRoadColor(road.type);
+            var weight = getRoadWeight(road.type);
+
+            // Convert coordinates to Leaflet format [[lat, lon], ...]
+            var latLngs = road.coordinates.map(function(coord) {{
+                return [coord[0], coord[1]];
+            }});
+
+            var polyline = L.polyline(latLngs, {{
+                color: color,
+                weight: weight,
+                opacity: 0.7
+            }});
+
+            // Create popup
+            var popupContent = `
+                <div class="building-popup">
+                    <h4>${{road.name}}</h4>
+                    <table>
+                        <tr><td>Type:</td><td>${{road.type}}</td></tr>
+                        <tr><td>ID:</td><td>${{road.id}}</td></tr>
+                    </table>
+                </div>
+            `;
+
+            polyline.bindPopup(popupContent);
+            polyline.addTo(map);
+        }});
 
         // Add buildings to map
         buildings.forEach(function(building) {{
@@ -272,7 +376,9 @@ def create_html_map(manifest: dict, output_path: str = "building_map.html"):
         f.write(html_content)
 
     print(f"Created interactive HTML map: {output_path}")
-    print(f"Open the file in your web browser to explore the buildings!")
+    print(f"  - {len(buildings)} buildings")
+    print(f"  - {len(road_data)} roads")
+    print(f"Open the file in your web browser to explore the buildings and roads!")
 
 
 def main():
