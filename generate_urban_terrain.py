@@ -157,7 +157,7 @@ def main():
     manifest_path = Path(args.output_dir) / "manifest.json"
     manifest = create_manifest(
         buildings_manifest,
-        roads_data=None,  # TODO: Process roads
+        roads_data=roads_gdf if len(roads_gdf) > 0 else None,
         bounding_box=(north, south, east, west),
         origin=(origin_lat, origin_lon),
         output_path=str(manifest_path)

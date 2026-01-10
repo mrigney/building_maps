@@ -3,9 +3,65 @@ Generate spatial manifest and index files for the urban terrain
 """
 import json
 import numpy as np
+import pandas as pd
 from pathlib import Path
 from typing import Dict, List, Tuple
 from datetime import datetime
+
+
+def process_roads_data(roads_gdf, origin_lat: float = None, origin_lon: float = None) -> dict:
+    """
+    Process roads GeoDataFrame into manifest-ready format.
+
+    Args:
+        roads_gdf: GeoDataFrame with road network data
+        origin_lat: Origin latitude for coordinate reference
+        origin_lon: Origin longitude for coordinate reference
+
+    Returns:
+        Dictionary of road data ready for manifest
+    """
+    if roads_gdf is None or len(roads_gdf) == 0:
+        return {}
+
+    roads_dict = {}
+
+    for idx, road in roads_gdf.iterrows():
+        # Create road ID
+        road_id = f"road_{idx}"
+        if 'osmid' in road and not pd.isna(road['osmid']):
+            try:
+                road_id = f"osm_road_{int(road['osmid'])}"
+            except (ValueError, TypeError):
+                pass
+
+        # Extract geometry coordinates
+        geom = road['geometry']
+        if geom.geom_type == 'LineString':
+            coords = [[point[1], point[0]] for point in geom.coords]  # [lat, lon]
+        else:
+            # Skip non-linestring geometries
+            continue
+
+        # Extract road properties
+        highway_type = road.get('highway', 'unknown')
+        name = road.get('name', None)
+        width = road.get('width', None)
+        lanes = road.get('lanes', None)
+        surface = road.get('surface', None)
+
+        roads_dict[road_id] = {
+            'type': highway_type,
+            'name': name,
+            'coordinates': coords,  # List of [lat, lon] pairs
+            'properties': {
+                'width': width,
+                'lanes': lanes,
+                'surface': surface
+            }
+        }
+
+    return roads_dict
 
 
 def create_manifest(
@@ -20,7 +76,7 @@ def create_manifest(
 
     Args:
         buildings_manifest: Dictionary from export_buildings
-        roads_data: Optional road network data
+        roads_data: Optional road network data (dict or GeoDataFrame)
         bounding_box: (north, south, east, west) in degrees
         origin: (origin_lat, origin_lon) for local coordinate system
         output_path: Path to save manifest JSON
@@ -28,10 +84,22 @@ def create_manifest(
     Returns:
         Manifest dictionary
     """
+    # Process roads if GeoDataFrame provided
+    if roads_data is not None and not isinstance(roads_data, dict):
+        try:
+            roads_data = process_roads_data(
+                roads_data,
+                origin_lat=origin[0] if origin else None,
+                origin_lon=origin[1] if origin else None
+            )
+        except Exception as e:
+            print(f"Warning: Could not process roads data: {e}")
+            roads_data = {}
+
     manifest = {
         'metadata': {
             'generated': datetime.now().isoformat(),
-            'generator': 'urban-terrain-generator v0.1',
+            'generator': 'urban-terrain-generator v0.2',
             'coordinate_system': {
                 'type': 'local_meters',
                 'origin_lat': origin[0] if origin else None,

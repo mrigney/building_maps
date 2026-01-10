@@ -36,12 +36,27 @@ def visualize_matplotlib(manifest: dict, output_path: str = None, show: bool = T
         return
 
     buildings = manifest.get('buildings', {})
+    roads = manifest.get('roads', {})
     metadata = manifest.get('metadata', {})
     bbox = metadata.get('bounding_box', {})
 
-    if not buildings:
-        print("No buildings found in manifest")
+    if not buildings and not roads:
+        print("No buildings or roads found in manifest")
         return
+
+    # Define road colors
+    road_colors = {
+        'motorway': '#e74c3c',
+        'trunk': '#e67e22',
+        'primary': '#f39c12',
+        'secondary': '#f1c40f',
+        'tertiary': '#95a5a6',
+        'residential': '#3498db',
+        'service': '#bdc3c7',
+        'footway': '#2ecc71',
+        'path': '#27ae60',
+        'unknown': '#7f8c8d'
+    }
 
     # Extract building data
     lats = []
@@ -65,12 +80,30 @@ def visualize_matplotlib(manifest: dict, output_path: str = None, show: bool = T
     # Create figure
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 8))
 
+    # Plot roads first (both axes)
+    for road_id, road_data in roads.items():
+        coords = road_data.get('coordinates', [])
+        road_type = road_data.get('type', 'unknown')
+        color = road_colors.get(road_type, road_colors['unknown'])
+
+        if len(coords) >= 2:
+            road_lats = [c[0] for c in coords]
+            road_lons = [c[1] for c in coords]
+
+            # Plot on both axes
+            ax1.plot(road_lons, road_lats, color=color, linewidth=1, alpha=0.5, zorder=1)
+            ax2.plot(road_lons, road_lats, color=color, linewidth=1, alpha=0.5, zorder=1)
+
     # Plot 1: Buildings colored by height
-    scatter1 = ax1.scatter(lons, lats, c=heights, s=[a/20 for a in areas],
-                          alpha=0.7, cmap='viridis', edgecolors='black', linewidth=0.5)
+    if buildings:
+        scatter1 = ax1.scatter(lons, lats, c=heights, s=[a/20 for a in areas],
+                              alpha=0.7, cmap='viridis', edgecolors='black', linewidth=0.5, zorder=2)
+        cbar1 = plt.colorbar(scatter1, ax=ax1)
+        cbar1.set_label('Height (m)', rotation=270, labelpad=20)
+
     ax1.set_xlabel('Longitude')
     ax1.set_ylabel('Latitude')
-    ax1.set_title(f'Building Locations Colored by Height\n({len(buildings)} buildings)')
+    ax1.set_title(f'Urban Terrain: Buildings and Roads\n({len(buildings)} buildings, {len(roads)} road segments)')
     ax1.grid(True, alpha=0.3)
 
     # Add bounding box
@@ -81,37 +114,38 @@ def visualize_matplotlib(manifest: dict, output_path: str = None, show: bool = T
         ax1.axvline(x=bbox.get('west'), color='r', linestyle='--', alpha=0.3)
         ax1.legend()
 
-    # Add colorbar
-    cbar1 = plt.colorbar(scatter1, ax=ax1)
-    cbar1.set_label('Height (m)', rotation=270, labelpad=20)
-
     # Plot 2: Buildings colored by type
     # Create type to color mapping
-    unique_types = list(set(types))
-    type_colors = {t: i for i, t in enumerate(unique_types)}
-    colors = [type_colors[t] for t in types]
+    if buildings:
+        unique_types = list(set(types))
+        type_colors = {t: i for i, t in enumerate(unique_types)}
+        colors = [type_colors[t] for t in types]
 
-    scatter2 = ax2.scatter(lons, lats, c=colors, s=[a/20 for a in areas],
-                          alpha=0.7, cmap='tab10', edgecolors='black', linewidth=0.5)
+        scatter2 = ax2.scatter(lons, lats, c=colors, s=[a/20 for a in areas],
+                              alpha=0.7, cmap='tab10', edgecolors='black', linewidth=0.5, zorder=2)
     ax2.set_xlabel('Longitude')
     ax2.set_ylabel('Latitude')
-    ax2.set_title(f'Building Locations Colored by Type\n({len(unique_types)} types)')
+    ax2.set_title(f'Urban Terrain by Building Type\n({len(buildings)} buildings, {len(unique_types) if buildings else 0} types)')
     ax2.grid(True, alpha=0.3)
 
     # Add legend for types
     from matplotlib.lines import Line2D
-    legend_elements = [Line2D([0], [0], marker='o', color='w',
-                             markerfacecolor=plt.cm.tab10(type_colors[t] / len(unique_types)),
-                             markersize=8, label=t)
-                      for t in unique_types[:10]]  # Limit to 10 types
+    legend_elements = []
+    if buildings and unique_types:
+        legend_elements = [Line2D([0], [0], marker='o', color='w',
+                                 markerfacecolor=plt.cm.tab10(type_colors[t] / max(len(unique_types), 1)),
+                                 markersize=8, label=t)
+                          for t in unique_types[:10]]  # Limit to 10 types
     ax2.legend(handles=legend_elements, loc='best', fontsize=8)
 
     # Add statistics
     stats = manifest.get('statistics', {})
     stats_text = f"Total Buildings: {stats.get('total_buildings', len(buildings))}\n"
-    stats_text += f"Height Range: {min(heights):.1f}m - {max(heights):.1f}m\n"
-    stats_text += f"Mean Height: {sum(heights)/len(heights):.1f}m\n"
-    stats_text += f"Total Area: {sum(areas):.1f} m²"
+    stats_text += f"Total Roads: {stats.get('total_roads', len(roads))}\n"
+    if heights:
+        stats_text += f"Height Range: {min(heights):.1f}m - {max(heights):.1f}m\n"
+        stats_text += f"Mean Height: {sum(heights)/len(heights):.1f}m\n"
+        stats_text += f"Total Area: {sum(areas):.1f} m²"
 
     fig.text(0.5, 0.02, stats_text, ha='center', fontsize=10,
              bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.5))
@@ -259,21 +293,23 @@ def visualize_ascii(manifest: dict):
         manifest: Loaded manifest data
     """
     buildings = manifest.get('buildings', {})
+    roads = manifest.get('roads', {})
     metadata = manifest.get('metadata', {})
     bbox = metadata.get('bounding_box', {})
     stats = manifest.get('statistics', {})
 
-    if not buildings:
-        print("No buildings found in manifest")
+    if not buildings and not roads:
+        print("No buildings or roads found in manifest")
         return
 
     print("=" * 80)
-    print("BUILDING VISUALIZATION (ASCII)")
+    print("URBAN TERRAIN VISUALIZATION (ASCII)")
     print("=" * 80)
     print()
 
     # Print statistics
     print(f"Total Buildings: {stats.get('total_buildings', len(buildings))}")
+    print(f"Total Roads: {stats.get('total_roads', len(roads))}")
     print(f"Bounding Box: ({bbox.get('south'):.6f}, {bbox.get('west'):.6f}) to "
           f"({bbox.get('north'):.6f}, {bbox.get('east'):.6f})")
     print()
@@ -290,6 +326,35 @@ def visualize_ascii(manifest: dict):
 
     # Create grid
     grid = [[' ' for _ in range(grid_width)] for _ in range(grid_height)]
+
+    # Plot roads first (so buildings appear on top)
+    for road_id, road_data in roads.items():
+        coords = road_data.get('coordinates', [])
+
+        for i in range(len(coords) - 1):
+            lat1, lon1 = coords[i]
+            lat2, lon2 = coords[i + 1]
+
+            if max_lat != min_lat and max_lon != min_lon:
+                # Draw line between consecutive points
+                x1 = int((lon1 - min_lon) / (max_lon - min_lon) * (grid_width - 1))
+                y1 = int((lat1 - min_lat) / (max_lat - min_lat) * (grid_height - 1))
+                y1 = grid_height - 1 - y1
+
+                x2 = int((lon2 - min_lon) / (max_lon - min_lon) * (grid_width - 1))
+                y2 = int((lat2 - min_lat) / (max_lat - min_lat) * (grid_height - 1))
+                y2 = grid_height - 1 - y2
+
+                # Simple line drawing (Bresenham-like)
+                steps = max(abs(x2 - x1), abs(y2 - y1))
+                if steps > 0:
+                    for step in range(steps + 1):
+                        t = step / steps
+                        x = int(x1 + t * (x2 - x1))
+                        y = int(y1 + t * (y2 - y1))
+                        if 0 <= x < grid_width and 0 <= y < grid_height:
+                            if grid[y][x] == ' ':  # Don't overwrite buildings
+                                grid[y][x] = '-'
 
     # Plot buildings
     for building_id, data in buildings.items():
@@ -320,8 +385,9 @@ def visualize_ascii(manifest: dict):
                 grid[y][x] = symbol
 
     # Print grid
-    print("Building Height Map:")
-    print("  . = < 15m   o = 15-30m   O = 30-60m   # = > 60m")
+    print("Urban Terrain Map:")
+    print("  Buildings: . = < 15m   o = 15-30m   O = 30-60m   # = > 60m")
+    print("  Roads: -")
     print()
     print("  " + "-" * grid_width)
     for row in grid:
@@ -330,21 +396,38 @@ def visualize_ascii(manifest: dict):
     print()
 
     # Print building list
-    print("Building Details:")
-    print(f"{'ID':<20} {'Type':<15} {'Height':<10} {'Area (m²)':<12}")
-    print("-" * 80)
+    if buildings:
+        print("Building Details (Top 10 by Height):")
+        print(f"{'ID':<20} {'Type':<15} {'Height':<10} {'Area (m²)':<12}")
+        print("-" * 80)
 
-    for building_id, data in sorted(buildings.items(),
-                                   key=lambda x: x[1]['properties'].get('height_m', 0),
-                                   reverse=True)[:10]:  # Top 10 by height
-        props = data.get('properties', {})
-        print(f"{building_id:<20} {props.get('building_type', 'unknown'):<15} "
-              f"{props.get('height_m', 0):<10.1f} {props.get('area_sqm', 0):<12.1f}")
+        for building_id, data in sorted(buildings.items(),
+                                       key=lambda x: x[1]['properties'].get('height_m', 0),
+                                       reverse=True)[:10]:
+            props = data.get('properties', {})
+            print(f"{building_id:<20} {props.get('building_type', 'unknown'):<15} "
+                  f"{props.get('height_m', 0):<10.1f} {props.get('area_sqm', 0):<12.1f}")
 
-    if len(buildings) > 10:
-        print(f"... and {len(buildings) - 10} more buildings")
+        if len(buildings) > 10:
+            print(f"... and {len(buildings) - 10} more buildings")
+        print()
 
-    print()
+    # Print road summary
+    if roads:
+        print("Road Network Summary:")
+        road_types = {}
+        named_roads = 0
+        for road_id, road_data in roads.items():
+            road_type = road_data.get('type', 'unknown')
+            road_types[road_type] = road_types.get(road_type, 0) + 1
+            if road_data.get('name'):
+                named_roads += 1
+
+        print(f"Total road segments: {len(roads)}")
+        print(f"Named roads: {named_roads}")
+        print(f"Road types: {', '.join(f'{k} ({v})' for k, v in sorted(road_types.items(), key=lambda x: -x[1])[:5])}")
+        print()
+
     print("=" * 80)
 
 
