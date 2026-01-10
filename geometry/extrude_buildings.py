@@ -56,13 +56,6 @@ def extrude_polygon(polygon: Polygon, height: float, base_elevation: float = 0.0
 
     # Triangulate the top and bottom faces
     try:
-        mesh = trimesh.Trimesh(vertices=vertices, faces=faces, process=False)
-
-        # Fix the polygon faces (top and bottom)
-        # Use trimesh's built-in triangulation
-        bottom_polygon = trimesh.path.polygons.polygons_enclosure_tree([coords])[0]
-        top_coords = coords.copy()
-
         # Create separate meshes for top and bottom caps
         bottom_mesh = triangulate_polygon_face(coords, base_elevation, flip_normal=True)
         top_mesh = triangulate_polygon_face(coords, base_elevation + height, flip_normal=False)
@@ -119,16 +112,14 @@ def triangulate_polygon_face(coords: np.ndarray, z: float, flip_normal: bool = F
         Trimesh of the triangulated face
     """
     try:
-        # Create vertices at specified z-height
-        vertices_2d = coords
-        vertices_3d = np.column_stack([vertices_2d, np.full(len(vertices_2d), z)])
-
-        # Triangulate using earcut algorithm via trimesh
+        # Triangulate the 2D polygon
         polygon_2d = Polygon(coords)
-        triangulation = trimesh.creation.triangulate_polygon(polygon_2d, engine='triangle')
 
-        # Create 3D vertices
-        faces = triangulation[1]
+        # triangulate_polygon returns (vertices_2d, faces)
+        vertices_2d, faces = trimesh.creation.triangulate_polygon(polygon_2d, engine='triangle')
+
+        # Convert 2D vertices to 3D at specified height
+        vertices_3d = np.column_stack([vertices_2d, np.full(len(vertices_2d), z)])
 
         if flip_normal:
             faces = faces[:, ::-1]  # Reverse winding order
