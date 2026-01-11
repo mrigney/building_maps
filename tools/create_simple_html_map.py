@@ -63,13 +63,22 @@ def create_html_map(manifest: dict, output_path: str = "building_map.html"):
     road_data = []
     for road_id, data in roads.items():
         coords = data.get('coordinates', [])
+        properties = data.get('properties', {})
+
+        # Check if surface polygon is available (in lat/lon, not local meters)
+        # Note: surface_polygon_local_m is in local coordinates, we need lat/lon for map
+        # For now, we'll use centerline with width for visualization
+
         if len(coords) >= 2:
-            road_data.append({
+            road_entry = {
                 'id': road_id,
                 'type': data.get('type', 'unknown'),
                 'name': data.get('name', 'Unnamed'),
-                'coordinates': coords  # List of [lat, lon] pairs
-            })
+                'coordinates': coords,  # Centerline as [lat, lon] pairs
+                'width_m': properties.get('width_m', None),
+                'surface_material': properties.get('surface_material', 'unknown')
+            }
+            road_data.append(road_entry)
 
     # Create HTML
     html_content = f"""<!DOCTYPE html>
@@ -248,44 +257,62 @@ def create_html_map(manifest: dict, output_path: str = "building_map.html"):
             return '#e74c3c';
         }}
 
-        // Function to get road color based on type
-        function getRoadColor(roadType) {{
+        // Function to get road color based on surface material
+        function getRoadColorByMaterial(material) {{
             var colors = {{
-                'motorway': '#e74c3c',
-                'trunk': '#e67e22',
-                'primary': '#f39c12',
-                'secondary': '#f1c40f',
-                'tertiary': '#95a5a6',
-                'residential': '#3498db',
-                'service': '#bdc3c7',
-                'footway': '#2ecc71',
-                'path': '#27ae60',
-                'unknown': '#7f8c8d'
+                'asphalt_road': '#2c3e50',      // Dark gray/black
+                'concrete_road': '#95a5a6',     // Light gray
+                'concrete_walkway': '#bdc3c7',  // Very light gray
+                'brick_paved': '#c0392b',       // Brick red
+                'cobblestone': '#7f8c8d',       // Medium gray
+                'gravel': '#95a5a6',            // Gray-brown
+                'dirt': '#8b7355',              // Brown
+                'grass': '#27ae60',             // Green
+                'sand': '#f39c12',              // Sandy yellow
+                'unknown': '#7f8c8d'            // Gray
             }};
-            return colors[roadType] || colors['unknown'];
+            return colors[material] || colors['unknown'];
         }}
 
-        // Function to get road weight based on type
-        function getRoadWeight(roadType) {{
-            var weights = {{
-                'motorway': 5,
-                'trunk': 4,
-                'primary': 4,
-                'secondary': 3,
-                'tertiary': 3,
-                'residential': 2,
-                'service': 1,
-                'footway': 1,
-                'path': 1,
-                'unknown': 2
-            }};
-            return weights[roadType] || 2;
+        // Function to convert road width (meters) to map pixels
+        // This is approximate - uses meters at roughly 45° latitude
+        function metersToPixels(meters, lat) {{
+            // At 45° latitude, roughly 1 pixel = 0.5-2 meters at zoom level 18
+            // We'll use a scaling factor to make roads visible
+            return Math.max(1, Math.min(meters * 0.8, 10));  // Clamp between 1-10 pixels
         }}
 
         // Add roads to map (draw first so buildings appear on top)
         roads.forEach(function(road) {{
-            var color = getRoadColor(road.type);
-            var weight = getRoadWeight(road.type);
+            // Use material-based color if available, otherwise type-based
+            var color;
+            if (road.surface_material && road.surface_material !== 'unknown') {{
+                color = getRoadColorByMaterial(road.surface_material);
+            }} else {{
+                // Fallback to type-based colors for roads without material info
+                var typeColors = {{
+                    'motorway': '#2c3e50', 'trunk': '#2c3e50',
+                    'primary': '#2c3e50', 'secondary': '#34495e',
+                    'tertiary': '#7f8c8d', 'residential': '#95a5a6',
+                    'service': '#bdc3c7', 'footway': '#bdc3c7',
+                    'path': '#bdc3c7', 'unknown': '#7f8c8d'
+                }};
+                color = typeColors[road.type] || '#7f8c8d';
+            }}
+
+            // Use calculated width if available, otherwise estimate from type
+            var weight;
+            if (road.width_m) {{
+                weight = metersToPixels(road.width_m, {center_lat});
+            }} else {{
+                // Fallback weights based on road type
+                var typeWeights = {{
+                    'motorway': 5, 'trunk': 4, 'primary': 4,
+                    'secondary': 3, 'tertiary': 3, 'residential': 2,
+                    'service': 1, 'footway': 1, 'path': 1, 'unknown': 2
+                }};
+                weight = typeWeights[road.type] || 2;
+            }}
 
             // Convert coordinates to Leaflet format [[lat, lon], ...]
             var latLngs = road.coordinates.map(function(coord) {{
@@ -295,15 +322,20 @@ def create_html_map(manifest: dict, output_path: str = "building_map.html"):
             var polyline = L.polyline(latLngs, {{
                 color: color,
                 weight: weight,
-                opacity: 0.7
+                opacity: 0.8
             }});
 
-            // Create popup
+            // Create popup with enhanced information
+            var widthInfo = road.width_m ? `<tr><td>Width:</td><td>${{road.width_m.toFixed(1)}} m</td></tr>` : '';
+            var materialInfo = road.surface_material ? `<tr><td>Surface:</td><td>${{road.surface_material}}</td></tr>` : '';
+
             var popupContent = `
                 <div class="building-popup">
-                    <h4>${{road.name}}</h4>
+                    <h4>${{road.name || 'Unnamed'}}</h4>
                     <table>
                         <tr><td>Type:</td><td>${{road.type}}</td></tr>
+                        ${{widthInfo}}
+                        ${{materialInfo}}
                         <tr><td>ID:</td><td>${{road.id}}</td></tr>
                     </table>
                 </div>

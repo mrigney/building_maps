@@ -22,6 +22,7 @@ from data_acquisition.fetch_osm import fetch_buildings, fetch_roads, process_bui
 from geometry.extrude_buildings import extrude_buildings
 from export.export_geometry import export_buildings, export_combined_scene, create_instanced_export
 from export.export_manifest import create_manifest, create_material_groups, save_material_mapping
+from export.export_road_materials import save_road_material_mapping
 from utils.geo_utils import get_bounding_box_center
 from utils.config import OUTPUT_DIR, MODELS_DIR, MANIFEST_FILE
 
@@ -163,10 +164,19 @@ def main():
         output_path=str(manifest_path)
     )
 
-    # Create material groups
+    # Create building material groups
     material_groups = create_material_groups(buildings_manifest)
     material_path = Path(args.output_dir) / "material_mapping.json"
     save_material_mapping(material_groups, str(material_path))
+
+    # Create road material mapping if roads were fetched
+    if len(roads_gdf) > 0 and 'roads' in manifest and manifest['roads']:
+        road_material_path = Path(args.output_dir) / "road_material_mapping.json"
+        save_road_material_mapping(
+            manifest['roads'],
+            str(road_material_path),
+            include_thermal_properties=True
+        )
 
     print()
     print("=" * 80)
@@ -174,10 +184,14 @@ def main():
     print("=" * 80)
     print(f"Total buildings: {len(buildings_manifest)}")
     print(f"Unique models: {manifest['statistics']['unique_models']}")
+    if manifest['statistics']['total_roads'] > 0:
+        print(f"Total roads: {manifest['statistics']['total_roads']}")
     print(f"Output directory: {args.output_dir}")
     print(f"  - Models: {models_dir}")
     print(f"  - Manifest: {manifest_path}")
     print(f"  - Material mapping: {material_path}")
+    if manifest['statistics']['total_roads'] > 0:
+        print(f"  - Road material mapping: {Path(args.output_dir) / 'road_material_mapping.json'}")
     if args.combined:
         print(f"  - Combined scene: {combined_path}")
     print("=" * 80)

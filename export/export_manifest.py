@@ -11,7 +11,7 @@ from datetime import datetime
 
 def process_roads_data(roads_gdf, origin_lat: float = None, origin_lon: float = None) -> dict:
     """
-    Process roads GeoDataFrame into manifest-ready format.
+    Process roads GeoDataFrame into manifest-ready format with enhanced data.
 
     Args:
         roads_gdf: GeoDataFrame with road network data
@@ -24,9 +24,33 @@ def process_roads_data(roads_gdf, origin_lat: float = None, origin_lon: float = 
     if roads_gdf is None or len(roads_gdf) == 0:
         return {}
 
+    # Process roads to add width, polygons, and materials
+    try:
+        try:
+            from ..geometry.process_roads import (
+                process_roads_with_surfaces,
+                convert_road_polygon_to_local_coords
+            )
+        except (ImportError, ValueError):
+            # Fallback for direct script execution
+            import sys
+            from pathlib import Path as PathLib
+            sys.path.insert(0, str(PathLib(__file__).parent.parent))
+            from geometry.process_roads import (
+                process_roads_with_surfaces,
+                convert_road_polygon_to_local_coords
+            )
+
+        # Enhance road data with calculated widths and surface polygons
+        roads_enhanced = process_roads_with_surfaces(roads_gdf)
+    except Exception as e:
+        print(f"Warning: Could not enhance road data: {e}")
+        # Fall back to basic processing
+        roads_enhanced = roads_gdf
+
     roads_dict = {}
 
-    for idx, road in roads_gdf.iterrows():
+    for idx, road in roads_enhanced.iterrows():
         # Create road ID
         road_id = f"road_{idx}"
         if 'osmid' in road and not pd.isna(road['osmid']):
@@ -35,7 +59,7 @@ def process_roads_data(roads_gdf, origin_lat: float = None, origin_lon: float = 
             except (ValueError, TypeError):
                 pass
 
-        # Extract geometry coordinates
+        # Extract centerline geometry coordinates
         geom = road['geometry']
         if geom.geom_type == 'LineString':
             coords = [[point[1], point[0]] for point in geom.coords]  # [lat, lon]
@@ -46,20 +70,45 @@ def process_roads_data(roads_gdf, origin_lat: float = None, origin_lon: float = 
         # Extract road properties
         highway_type = road.get('highway', 'unknown')
         name = road.get('name', None)
-        width = road.get('width', None)
+
+        # Get enhanced properties if available
+        width_m = road.get('width_m', None)
+        surface_material = road.get('surface_material', None)
+
+        # Original OSM tags
+        width_tag = road.get('width', None)
         lanes = road.get('lanes', None)
         surface = road.get('surface', None)
 
-        roads_dict[road_id] = {
+        # Build road entry
+        road_entry = {
             'type': highway_type,
             'name': name,
-            'coordinates': coords,  # List of [lat, lon] pairs
+            'coordinates': coords,  # Centerline as [lat, lon] pairs
             'properties': {
-                'width': width,
-                'lanes': lanes,
-                'surface': surface
+                'width_m': width_m,  # Calculated width in meters
+                'surface_material': surface_material,  # Standardized material
+                'osm_tags': {
+                    'width': width_tag,
+                    'lanes': lanes,
+                    'surface': surface
+                }
             }
         }
+
+        # Add surface polygon in local coordinates if available
+        if 'surface_polygon' in road and road['surface_polygon'] is not None and origin_lat and origin_lon:
+            try:
+                polygon_coords = convert_road_polygon_to_local_coords(
+                    road['surface_polygon'],
+                    origin_lat,
+                    origin_lon
+                )
+                road_entry['surface_polygon_local_m'] = polygon_coords
+            except Exception as e:
+                print(f"Warning: Could not convert road polygon to local coords: {e}")
+
+        roads_dict[road_id] = road_entry
 
     return roads_dict
 
